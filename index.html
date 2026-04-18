@@ -7,9 +7,7 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="العمليات">
     <link rel="apple-touch-icon" href="logo.png">
-    <link rel="icon" href="logo.png" type="image/png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -22,58 +20,43 @@
         
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid var(--tactical-dark); }
-        .swat-header img { width: 90px; margin-bottom: 5px; }
-        .special-ops-text { color: white; font-size: 1.3rem; font-weight: bold; margin: 0 0 20px 0; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid var(--tactical-dark); color: var(--tactical-light); border-radius: 5px; box-sizing: border-box; text-align: center; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid var(--tactical-dark); color: var(--tactical-light); border-radius: 5px; box-sizing: border-box; text-align: center; }
 
         #mainApp { display: none; height: 100vh; flex-direction: column; }
         .header { background: var(--panel); padding: 10px 20px; border-bottom: 2px solid var(--tactical-dark); display: flex; justify-content: space-between; align-items: center; }
-        .profile-img-header { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--tactical-dark); object-fit: cover; }
 
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
         
-        .group-selector { display: flex; flex-direction: column; gap: 12px; }
-        .group-btn { 
-            background: #1c2126; border: 1px solid var(--tactical-dark); color: var(--tactical-light); 
-            padding: 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px;
-        }
-        .group-icon-frame { width: 40px; height: 40px; background: var(--panel); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
-
         .chat-container { display: none; flex-direction: column; height: 100%; }
         .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
-        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; max-width: 85%; }
-        .msg img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        
+        .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 12px; border-right: 4px solid var(--tactical-dark); }
+        .msg-sender-img { width: 45px; height: 45px; border-radius: 50%; border: 1px solid var(--tactical-light); object-fit: cover; }
+        .msg-name { color: var(--neon); font-weight: bold; font-size: 13px; }
+        .msg-info { font-size: 11px; color: var(--tactical-light); }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 8px; }
+        .file-link { background: #222; padding: 8px; border-radius: 5px; display: inline-block; text-decoration: none; color: var(--neon); margin-top: 5px; font-size: 12px; }
+
+        .input-area { display: flex; gap: 8px; background: var(--panel); padding: 10px; border-top: 1px solid #333; }
+        .attach-btn { background: #222; border: 1px solid var(--tactical-dark); color: white; width: 45px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main { background: var(--tactical-dark); color: black; }
+        .btn-danger { background: var(--danger); color: white; }
 
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
         .nav-item { color: #555; font-size: 24px; cursor: pointer; }
         .nav-item.active { color: var(--tactical-light); }
-
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-main { background: var(--tactical-dark); color: black; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--tactical-dark); color: white; padding: 5px 10px; font-size: 11px; width: auto; }
-
-        #emergencyOverlay { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.95); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .timer-display { font-size: 2.5rem; font-weight: bold; margin: 15px 0; color: var(--neon); }
     </style>
 </head>
 <body>
 
 <audio id="alarmSound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" loop></audio>
 
-<div id="emergencyOverlay">
-    <i class="fas fa-radiation-alt fa-spin" style="font-size: 80px; margin-bottom: 20px;"></i>
-    <h1>نداء مداهمة!</h1>
-    <p id="emergencyMsg" style="background: black; padding: 15px; border-radius: 10px; width: 80%;"></p>
-    <button class="btn btn-main" onclick="stopAlarm()" style="width: auto; padding: 15px 50px;">تم الاستلام</button>
-</div>
-
 <div id="loginPage">
     <div class="login-box">
-        <div class="swat-header">
-            <img src="logo.png" alt="Logo">
-            <h1 class="special-ops-text">العمليات الخاصة</h1>
-        </div>
+        <img src="logo.png" style="width:90px; margin-bottom:10px;">
+        <h1 style="font-size:1.3rem;">العمليات الخاصة</h1>
         <input type="text" id="milId" placeholder="الرقم العسكري">
         <input type="password" id="pass" placeholder="كلمة المرور">
         <button class="btn btn-main" onclick="login()">دخول النظام</button>
@@ -82,78 +65,70 @@
 
 <div id="mainApp">
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="https://via.placeholder.com/150" id="headerImg" class="profile-img-header">
-            <div>
-                <div id="userDisplay" style="font-weight: bold; font-size: 13px;">--</div>
-                <div id="statusLabel" style="font-size: 10px; color: var(--danger);">خارج الخدمة</div>
-            </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="" id="headerImg" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+            <div id="userDisplay" style="font-weight:bold; font-size:13px;">--</div>
         </div>
-        <button class="btn btn-outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+        <button onclick="logout()" style="background:none; border:1px solid #444; color:white; padding:5px; border-radius:5px;">خروج</button>
     </div>
 
     <div class="content">
         <div id="homeSec" class="tab-content">
-            <div id="adminPanel" style="background: var(--tactical-dark); color: black; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; display: none;">
-                <h4 style="margin:0 0 10px 0;">لوحة القيادة والسيطرة</h4>
-                <input type="text" id="raidMsg" placeholder="اكتب تعليمات المداهمة..." style="background: white; color: black; border: none;">
-                <button class="btn btn-danger" onclick="triggerRaid()">إطلاق نداء مداهمة</button>
+            <div id="adminPanel" style="display:none; background:#1c2126; padding:15px; border-radius:10px; margin-bottom:20px; border-right:4px solid var(--neon);">
+                <h4 style="margin:0 0 10px 0; color:var(--neon);">إدارة القوات</h4>
+                <select id="targetUser"></select>
+                <select id="targetGroup">
+                    <option value="g1">القتالية الأولى</option>
+                    <option value="g2">القتالية الثانية</option>
+                    <option value="g3">القتالية الثالثة</option>
+                    <option value="g4">قلم القوة</option>
+                </select>
+                <button class="btn btn-main" style="padding:8px; font-size:12px;" onclick="manageMember('add')">منح صلاحية</button>
+                <hr style="border:0; border-top:1px solid #444; margin:10px 0;">
+                <button class="btn btn-danger" onclick="triggerRaid()">نداء مداهمة</button>
             </div>
-            
-            <div class="timer-card" style="background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333;">
-                <small style="color: var(--tactical-dark);">مدة الخدمة النشطة</small>
-                <div class="timer-display" id="timer">00:00:00</div>
-                <button class="btn btn-main" id="dutyBtn" onclick="toggleDuty()">تسجيل دخول الخدمة</button>
+            <div style="text-align:center;">
+                <div id="timer" style="font-size:2.5rem; color:var(--neon); margin-bottom:10px;">00:00:00</div>
+                <button class="btn btn-main" id="dutyBtn" onclick="toggleDuty()">بدء الخدمة</button>
             </div>
         </div>
 
-        <div id="chatSec" class="tab-content" style="display: none; height: 100%;">
-            <div id="groupList" class="group-selector">
-                <div class="group-btn" onclick="openChat('المجموعة القتالية الأولى', 'fas fa-shield-alt')">
-                    <div class="group-icon-frame"><i class="fas fa-shield-alt"></i></div>
-                    <div class="group-btn-text">المجموعة القتالية الأولى</div>
-                </div>
-                <div class="group-btn" onclick="openChat('المجموعة القتالية الثانية', 'fas fa-piston')">
-                    <div class="group-icon-frame"><i class="fas fa-bolt"></i></div>
-                    <div class="group-btn-text">المجموعة القتالية الثانية</div>
-                </div>
-                <div class="group-btn" onclick="openChat('المجموعة القتالية الثالثة', 'fas fa-crosshairs')">
-                    <div class="group-icon-frame"><i class="fas fa-crosshairs"></i></div>
-                    <div class="group-btn-text">المجموعة القتالية الثالثة</div>
-                </div>
+        <div id="chatSec" class="tab-content" style="display:none; height:100%;">
+            <div id="groupList">
+                <div class="btn btn-main" style="margin-bottom:10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</div>
+                <div id="btn-g1" class="btn btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الأولى')">القتالية الأولى</div>
+                <div id="btn-g2" class="btn btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثانية')">القتالية الثانية</div>
+                <div id="btn-g3" class="btn btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثالثة')">القتالية الثالثة</div>
+                <div id="btn-g4" class="btn btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('قلم القوة')">قلم القوة</div>
             </div>
 
             <div id="activeChat" class="chat-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 id="currentGroupName" style="margin:0; font-size: 1rem;"></h3>
-                    <button onclick="backToGroups()" class="btn btn-outline">رجوع</button>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong id="currentGroupName"></strong>
+                    <button onclick="backToGroups()" class="btn-outline">رجوع</button>
                 </div>
                 <div id="chatBox" class="chat-box"></div>
-                <div style="display: flex; gap: 5px; margin-top: 10px;">
-                    <input type="text" id="msgInput" placeholder="رسالة تكتيكية...">
-                    <button onclick="sendMsg()" class="btn-main" style="width:50px; border-radius:5px;"><i class="fas fa-paper-plane"></i></button>
+                <div class="input-area">
+                    <input type="file" id="fileInp" style="display:none;" onchange="handleFile(this)">
+                    <button class="attach-btn" onclick="document.getElementById('fileInp').click()"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="msgInput" placeholder="رسالة...">
+                    <button onclick="sendMsg()" class="btn-main" style="width:50px;"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
 
-        <div id="settingsSec" class="tab-content" style="display: none; text-align: center;">
-            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--tactical-dark); object-fit: cover;">
-            <br>
-            <button class="btn btn-outline" style="margin: 15px auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة</button>
-            <input type="file" id="imgInp" style="display: none;" onchange="updatePhoto(this)">
-            
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin: 15px 0;">
-                <p id="fixedName" style="margin: 5px 0; font-weight: bold;"></p>
-                <p id="fixedRank" style="margin: 5px 0; color: var(--tactical-light);"></p>
-            </div>
-            <button class="btn btn-danger" onclick="logout()"><i class="fas fa-power-off"></i> تسجيل الخروج</button>
+        <div id="settingsSec" class="tab-content" style="display:none; text-align:center;">
+             <img src="https://via.placeholder.com/150" id="profilePrev" style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
+             <br><br>
+             <button class="btn btn-outline" onclick="document.getElementById('profileInp').click()">تغيير الصورة الشخصية</button>
+             <input type="file" id="profileInp" style="display:none;" onchange="updateProfilePhoto(this)">
         </div>
     </div>
 
     <div class="nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-house-user"></i></div>
         <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-tower-broadcast"></i></div>
-        <div class="nav-item" onclick="switchTab('settings', this)"><i class="fas fa-user-shield"></i></div>
+        <div class="nav-item" onclick="switchTab('settings', this)"><i class="fas fa-user-circle"></i></div>
     </div>
 </div>
 
@@ -231,130 +206,96 @@
         "105869": { rank: "شرطي أول", name: "حسن علي درويش محمد الرئيسي" }
     };
 
-    const admins = ["1321", "1408", "1549", "1565", "1587", "1739", "1886"];
-    let duty = false, startTime, currentUser = "", userPhoto = "";
+    let currentUser = "";
 
     window.onload = function() {
-        let savedUser = localStorage.getItem('session_user');
-        if (savedUser && personnelDB[savedUser]) {
-            currentUser = savedUser; showMainApp();
-            if (localStorage.getItem(currentUser + '_duty') === 'true') {
-                duty = true; startTime = parseInt(localStorage.getItem(currentUser + '_startTime'));
-                updateDutyUI(true); startTimer();
-            }
-        }
+        let saved = localStorage.getItem('session_user');
+        if (saved) { currentUser = saved; showMainApp(); checkGroups(); }
+        const sel = document.getElementById('targetUser');
+        Object.keys(personnelDB).sort().forEach(id => {
+            let o = document.createElement('option'); o.value = id; o.innerText = id + " - " + personnelDB[id].name;
+            sel.appendChild(o);
+        });
     };
 
     function login() {
         let id = document.getElementById('milId').value.trim();
-        let pass = document.getElementById('pass').value;
-        let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
-        if(personnelDB[id] && pass === savedPass) {
-            currentUser = id; localStorage.setItem('session_user', id); showMainApp();
-        } else { alert("بيانات الدخول غير صحيحة."); }
+        if(personnelDB[id]) { currentUser = id; localStorage.setItem('session_user', id); showMainApp(); checkGroups(); }
     }
 
-    function logout() {
-        if(confirm("هل تريد تسجيل الخروج؟")) { localStorage.removeItem('session_user'); location.reload(); }
-    }
-
-    function showMainApp() {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'flex';
-        if(admins.includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
-        loadProfile();
-    }
-
-    function toggleDuty() {
-        duty = !duty;
-        if(duty) {
-            startTime = Date.now(); localStorage.setItem(currentUser + '_duty', 'true');
-            localStorage.setItem(currentUser + '_startTime', startTime);
-            updateDutyUI(true); startTimer();
-        } else {
-            localStorage.removeItem(currentUser + '_duty'); localStorage.removeItem(currentUser + '_startTime');
-            updateDutyUI(false); location.reload();
-        }
-    }
-
-    function updateDutyUI(active) {
-        let btn = document.getElementById('dutyBtn'), lbl = document.getElementById('statusLabel');
-        if(active) {
-            btn.innerText = "إنهاء الخدمة"; btn.className = "btn btn-danger";
-            lbl.innerText = "في الخدمة (نشط)"; lbl.style.color = "var(--neon)";
-        } else {
-            btn.innerText = "تسجيل دخول الخدمة"; btn.className = "btn btn-main";
-            lbl.innerText = "خارج الخدمة"; lbl.style.color = "var(--danger)";
-        }
-    }
-
-    function startTimer() {
-        setInterval(() => {
-            if(!duty) return;
-            let diff = Date.now() - startTime;
-            let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            document.getElementById('timer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        }, 1000);
-    }
-
-    function loadProfile() {
+    function addMsgToChat(htmlContent) {
         let p = personnelDB[currentUser];
-        userPhoto = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
-        document.getElementById('userDisplay').innerText = p.rank + " / " + p.name;
-        document.getElementById('fixedName').innerText = "الاسم: " + p.name;
-        document.getElementById('fixedRank').innerText = "الرتبة: " + p.rank;
-        document.getElementById('headerImg').src = userPhoto;
-        document.getElementById('profilePrev').src = userPhoto;
+        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('chatBox').innerHTML += `
+            <div class="msg">
+                <img src="${photo}" class="msg-sender-img">
+                <div>
+                    <div class="msg-name">${p.rank} / ${p.name}</div>
+                    <div class="msg-info">الرقم العسكري: ${currentUser}</div>
+                    <div style="margin-top:5px;">${htmlContent}</div>
+                </div>
+            </div>`;
+        document.getElementById('chatBox').scrollTop = 9999;
     }
 
-    function openChat(name, icon) {
-        document.getElementById('groupList').style.display = 'none';
-        document.getElementById('activeChat').style.display = 'flex';
-        document.getElementById('currentGroupName').innerText = name;
-        document.getElementById('chatBox').innerHTML = `<div style="text-align:center; color:gray; font-size:10px;">نظام تواصل آمن - ${name}</div>`;
+    function handleFile(input) {
+        if (input.files && input.files[0]) {
+            let file = input.files[0], r = new FileReader();
+            r.onload = function(e) {
+                let c = file.type.startsWith('image/') ? `<img src="${e.target.result}" class="chat-img">` : `<a href="${e.target.result}" download="${file.name}" class="file-link">${file.name}</a>`;
+                addMsgToChat(c);
+            };
+            r.readAsDataURL(file);
+        }
     }
 
-    function backToGroups() {
-        document.getElementById('groupList').style.display = 'flex';
-        document.getElementById('activeChat').style.display = 'none';
+    function sendMsg() {
+        let inp = document.getElementById('msgInput');
+        if(inp.value.trim()) { addMsgToChat(inp.value); inp.value = ""; }
     }
 
-    function switchTab(tab, el) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.getElementById(tab + 'Sec').style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
+    function checkGroups() {
+        let acc = JSON.parse(localStorage.getItem(currentUser + '_groups') || "[]");
+        acc.forEach(g => { if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'block'; });
     }
 
-    function updatePhoto(input) {
+    function manageMember(action) {
+        let t = document.getElementById('targetUser').value, g = document.getElementById('targetGroup').value;
+        let acc = JSON.parse(localStorage.getItem(t + '_groups') || "[]");
+        if(action === 'add' && !acc.includes(g)) acc.push(g);
+        localStorage.setItem(t + '_groups', JSON.stringify(acc));
+        alert("تم تحديث صلاحيات " + t);
+    }
+
+    function showMainApp() { 
+        document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainApp').style.display = 'flex';
+        if(["1321", "1408", "1549", "1565", "1587"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
+        document.getElementById('headerImg').src = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('profilePrev').src = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+    }
+
+    function updateProfilePhoto(input) {
         if (input.files && input.files[0]) {
             let r = new FileReader();
-            r.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; };
+            r.onload = e => {
+                localStorage.setItem(currentUser + '_photo', e.target.result);
+                document.getElementById('profilePrev').src = e.target.result;
+                document.getElementById('headerImg').src = e.target.result;
+            };
             r.readAsDataURL(input.files[0]);
         }
     }
 
-    function saveSettings() {
-        localStorage.setItem(currentUser + '_photo', userPhoto);
-        alert("تم الحفظ"); loadProfile();
+    function openChat(n) { document.getElementById('groupList').style.display = 'none'; document.getElementById('activeChat').style.display = 'flex'; document.getElementById('currentGroupName').innerText = n; }
+    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
+    function switchTab(t, el) { 
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
     }
-
-    function triggerRaid() {
-        document.getElementById('emergencyOverlay').style.display = 'flex';
-        document.getElementById('emergencyMsg').innerText = document.getElementById('raidMsg').value || "نداء مداهمة فوري!";
-        document.getElementById('alarmSound').play();
-    }
-
-    function stopAlarm() {
-        document.getElementById('emergencyOverlay').style.display = 'none';
-        document.getElementById('alarmSound').pause();
-    }
-
-    function sendMsg() {
-        let inp = document.getElementById('msgInput'); if(!inp.value) return;
-        document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${userPhoto}"><div><small style="color:var(--neon)">${personnelDB[currentUser].rank}</small><br>${inp.value}</div></div>`;
-        inp.value = ""; document.getElementById('chatBox').scrollTop = 9999;
-    }
+    function logout() { localStorage.removeItem('session_user'); location.reload(); }
+    function toggleDuty() { alert("تم تسجيل الدخول للخدمة"); }
+    function triggerRaid() { alert("تم إرسال نداء مداهمة!"); }
 </script>
 </body>
 </html>
