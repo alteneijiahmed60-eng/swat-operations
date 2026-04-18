@@ -34,8 +34,8 @@
         @keyframes flash-alert { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
         #audioPermissionUI { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* تسجيل الدخول والواجهة */
-        #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        /* تسجيل الدخول */
+        #loginPage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
         .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
@@ -52,5 +52,151 @@
         .admin-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; }
         .sys-msg { text-align: center; font-size: 11px; color: var(--neon); margin: 10px 0; background: rgba(0, 255, 65, 0.1); padding: 5px; border-radius: 5px; border: 1px solid rgba(0, 255, 65, 0.3); }
         
-        /* تنسيق نموذج الرسائل والمرفقات */
-        .chat-controls { display: flex; gap: 10px; align-items: flex-end; background: #0b0e11; padding: 10px; border-radius: 8px; border:
+        /* تنسيق الشات والمرفقات */
+        .chat-controls { display: flex; gap: 10px; align-items: flex-end; background: #0b0e11; padding: 10px; border-radius: 8px; border: 1px solid #333; }
+        .chat-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 5px; transition: 0.2s; }
+        .chat-btn:hover { color: var(--neon); }
+        #msgInput { flex: 1; padding: 10px; background: #15191c; border: 1px solid #444; color: #fff; border-radius: 5px; margin: 0; resize: none; min-height: 40px; max-height: 150px; font-family: inherit; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop preload="auto"></audio>
+<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop preload="auto"></audio>
+<audio id="remoteAudio" autoplay></audio>
+
+<div id="audioPermissionUI">
+    <i class="fas fa-shield-alt" style="font-size: 80px; color: var(--neon); margin-bottom: 20px;"></i>
+    <h2 style="color: white;">تأكيد الجاهزية</h2>
+    <p style="color: var(--tactical); margin-bottom: 30px;">يرجى تأكيد جاهزيتك لاستقبال النداءات الطارئة والاتصالات اللاسلكية.</p>
+    <button class="btn-main" style="background: var(--neon); color: black; font-size: 1.2rem; padding: 15px;" onclick="enableAudioAndStart()">أؤكد جاهزيتي</button>
+</div>
+
+<div id="raidAlertUI">
+    <i class="fas fa-exclamation-triangle alert-icon"></i>
+    <h1 style="font-size: 3rem; color: white; margin: 0;">نداء مداهمة!</h1>
+    <h3 id="raidAlertSender" style="color: white; margin-top: 10px;">بأمر من: --</h3>
+    <p style="color: white; font-size: 1.2rem; margin-bottom: 40px;">الرجاء من جميع القوات الاستعداد فوراً</p>
+    <button class="btn-main" style="background: #000; color: #fff; width: 250px; font-size: 1.2rem;" onclick="dismissRaidAlert()">علم (إيقاف الإنذار)</button>
+</div>
+
+<div id="callUI">
+    <div id="callHeader">
+        <div class="pulse"><i class="fas fa-phone-alt" id="statusIcon"></i></div>
+        <h3 id="callStatusText" style="color: var(--neon); margin-bottom: 20px;">جاري الاتصال...</h3>
+    </div>
+    
+    <img src="" id="peerImg" class="call-img">
+    <video id="remoteVideo" autoplay playsinline class="call-img" style="display: none; background: #111;"></video>
+    
+    <div class="call-info">
+        <h2 id="peerName">--</h2>
+        <p id="peerRank">--</p>
+        <p id="peerMilId">--</p>
+    </div>
+
+    <div id="activeCallTimer" class="timer" style="display: none;">00:00</div>
+
+    <div class="call-btns" id="callActionBtns">
+        <button id="acceptBtn" class="btn-call accept" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
+        <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+    </div>
+
+    <div class="call-btns" id="activeCallBtns" style="display: none;">
+        <button id="muteBtn" class="btn-call control" onclick="toggleMute()"><i class="fas fa-microphone"></i></button>
+        <button class="btn-call reject" onclick="endCall()" style="width: 85px; height: 85px; font-size: 30px;"><i class="fas fa-phone-slash"></i></button>
+        <button id="videoBtn" class="btn-call control" onclick="toggleVideo()"><i class="fas fa-video-slash"></i></button>
+    </div>
+</div>
+
+<div id="loginPage">
+    <div class="login-box">
+        <img src="https://i.ibb.co/3s8s4zP/logo.png" style="width:90px; margin-bottom:10px;" onerror="this.style.display='none'">
+        <h2 style="color: #fff; margin-bottom: 20px;">العمليات الخاصة</h2>
+        <input type="text" id="milId" list="personnelList" placeholder="الرقم العسكري أو الاسم" autocomplete="off">
+        <datalist id="personnelList"></datalist>
+        <input type="password" id="pass" placeholder="كلمة المرور">
+        <button class="btn-main" style="background: #968c83; color: #000; margin-top: 10px;" onclick="login()">دخول النظام</button>
+    </div>
+</div>
+
+<div id="mainApp">
+    <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+        <div id="userDisplay" style="font-size: 13px; font-weight: bold;">--</div>
+        <button onclick="logout()" style="background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 10px; padding: 2px 8px; border-radius: 5px;">خروج</button>
+    </div>
+
+    <div id="homeSec" class="tab-content">
+        <div id="adminPanel" style="display:none; background: #1c2126; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-right: 4px solid var(--neon);">
+            <h4 style="margin:0 0 10px 0; color: var(--neon);"><i class="fas fa-shield-alt"></i> لوحة قيادة العمليات</h4>
+            
+            <input type="text" id="targetUser" list="adminPersonnelList" class="admin-select" placeholder="ابحث عن العسكري..." autocomplete="off">
+            <datalist id="adminPersonnelList"></datalist>
+            
+            <select id="targetGroupAdmin" class="admin-select">
+                <option value="المجموعة المشتركة">المجموعة المشتركة</option>
+                <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
+                <option value="المجموعة القتالية الثانية">القتالية الثانية</option>
+                <option value="المجموعة القتالية الثالثة">القتالية الثالثة</option>
+                <option value="قلم القوة">قلم القوة</option>
+            </select>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button class="btn-main" style="flex: 1; font-size: 12px; padding: 10px;" onclick="manageMember('add')"><i class="fas fa-user-plus"></i> إضافة للمجموعة</button>
+                <button class="btn-main" style="flex: 1; background: var(--danger); color: #fff; font-size: 12px; padding: 10px;" onclick="manageMember('remove')"><i class="fas fa-user-minus"></i> إزالة من المجموعة</button>
+            </div>
+            
+            <button class="btn-main" style="background: var(--danger); color: #fff; margin-bottom: 10px; font-size: 14px;" onclick="triggerRaid()"><i class="fas fa-exclamation-triangle"></i> إطلاق نداء مداهمة (صوتي)</button>
+            <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px;" onclick="clearChat()"><i class="fas fa-trash-alt"></i> مسح دردشة المجموعة المحددة</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; background: rgba(0, 255, 65, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(0, 255, 65, 0.2);">
+            <h3 style="margin: 0; color: var(--tactical);">عدد الأشخاص المتصلين</h3>
+            <div id="onlineCountDisplay" style="font-size: 4rem; color: var(--neon); font-weight: bold; margin-top: 10px;">0</div>
+        </div>
+    </div>
+
+    <div id="callSec" class="tab-content" style="display: none;">
+        <div style="background: var(--panel); padding: 20px; border-radius: 10px; border: 1px solid var(--tactical);">
+            <h3>اتصال عسكري لايف</h3>
+            <input type="text" id="targetId" list="callList" placeholder="الرقم العسكري أو اسم الزميل" style="width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center;">
+            <datalist id="callList"></datalist>
+            <button class="btn-main" style="background: var(--neon);" onclick="startCall()">اطلب الآن</button>
+        </div>
+    </div>
+
+    <div id="chatSec" class="tab-content" style="display: none; padding: 10px;">
+        <div id="groupList">
+            <button class="btn-main" style="margin-bottom: 10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
+            <button id="btn-g1" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الأولى')">القتالية الأولى</button>
+            <button id="btn-g2" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الثانية')">القتالية الثانية</button>
+            <button id="btn-g3" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الثالثة')">القتالية الثالثة</button>
+            <button id="btn-g4" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('قلم القوة')">قلم القوة</button>
+        </div>
+        <div id="activeChat" style="display: none; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong id="currentGroupName">--</strong>
+                <button onclick="backToGroups()" style="background:none; border: 1px solid #444; color: #fff; padding: 2px 10px; border-radius: 4px;">رجوع</button>
+            </div>
+            
+            <div id="chatBox" class="chat-box"></div>
+            
+            <div class="chat-controls">
+                <input type="file" id="chatFile" accept="image/*,.pdf,.doc,.docx" style="display:none;" onchange="uploadFile(event)">
+                <button class="chat-btn" onclick="document.getElementById('chatFile').click()" title="إرفاق ملف/صورة"><i class="fas fa-paperclip"></i></button>
+                <button class="chat-btn" onclick="insertRaidTemplate()" title="إدراج نموذج مداهمة"><i class="fas fa-file-alt"></i></button>
+                <textarea id="msgInput" placeholder="أدخل البلاغ..."></textarea>
+                <button class="chat-btn" style="color: var(--neon);" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="switchTab('call', this)"><i class="fas fa-phone-volume"></i></div>
+        <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-comment-dots"></i></div>
+    </nav>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="
