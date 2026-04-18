@@ -13,7 +13,7 @@
         
         /* واجهة المكالمة */
         #callUI { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .call-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon); }
+        .call-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon); background: #111; }
         .call-info h2 { margin: 10px 0; font-size: 1.4rem; }
         .call-info p { margin: 2px 0; color: var(--tactical); }
         .timer { font-size: 2.8rem; color: var(--neon); font-family: monospace; margin: 25px 0; }
@@ -36,7 +36,7 @@
         /* شاشة تفعيل الصوت للأفراد */
         #audioPermissionUI { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* تسجيل الدخول والواجهة */
+        /* تسجيل الدخول */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
@@ -82,7 +82,7 @@
     </div>
     
     <img src="" id="peerImg" class="call-img">
-    <video id="remoteVideo" autoplay playsinline class="call-img" style="display: none; background: #111;"></video>
+    <video id="remoteVideo" autoplay playsinline class="call-img" style="display: none;"></video>
     
     <div class="call-info">
         <h2 id="peerName">--</h2>
@@ -290,7 +290,6 @@
         let saved = localStorage.getItem('session_user');
         if (saved && personnelDB[saved]) { 
             currentUser = saved; 
-            // إظهار شاشة طلب تفعيل الصوت قبل الدخول للتطبيق
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('audioPermissionUI').style.display = 'flex';
         }
@@ -305,17 +304,13 @@
             if(pass === validPass) {
                 currentUser = id; 
                 localStorage.setItem('session_user', id); 
-                
-                // إظهار شاشة طلب تفعيل الصوت لتجاوز حظر المتصفح
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('audioPermissionUI').style.display = 'flex';
             } else { alert("كلمة المرور غير صحيحة!"); }
         } else { alert("الرقم العسكري غير مسجل!"); }
     }
 
-    // هذه الدالة تتأكد إن المتصفح سمح بتشغيل الصوت
     function enableAudioAndStart() {
-        // خدعة برمجية لتشغيل ملفات الصوت ثانية واحدة عشان المتصفح يسجل التفاعل
         let siren = document.getElementById('sirenSound');
         let ring = document.getElementById('ringtone');
         siren.play().then(() => { siren.pause(); siren.currentTime = 0; }).catch(e=>{});
@@ -338,10 +333,10 @@
         listenForRaidAlerts();
     }
 
-    // --- نظام إنذار المداهمة المطور ---
+    // --- نظام إنذار المداهمة ---
     function triggerRaid() {
         if(confirm("تأكيد: إطلاق نداء مداهمة لجميع القوات؟")) {
-            db.ref('alerts/raid').set({ 
+            db.ref('alerts/raid').push({ 
                 time: Date.now(), 
                 byRank: personnelDB[currentUser].rank, 
                 byName: personnelDB[currentUser].name 
@@ -350,16 +345,14 @@
     }
 
     function listenForRaidAlerts() {
-        db.ref('alerts/raid').on('value', snap => {
+        db.ref('alerts/raid').limitToLast(1).on('child_added', snap => {
             const data = snap.val();
-            // إذا كان التنبيه جديد (خلال آخر 15 ثانية)
             if(data && (Date.now() - data.time < 15000)) {
                 document.getElementById('raidAlertSender').innerText = `بأمر من: ${data.byRank} / ${data.byName}`;
                 document.getElementById('raidAlertUI').style.display = 'flex';
-                
                 let siren = document.getElementById('sirenSound');
                 siren.currentTime = 0;
-                siren.play().catch(e => console.log("المتصفح منع الصوت", e));
+                siren.play().catch(e => console.log(e));
             }
         });
     }
@@ -371,25 +364,35 @@
         siren.currentTime = 0;
     }
 
-    // --- خواص الإدارة ---
+    // --- الإدارة والتوزيع ---
     function manageMember(action) {
         let t = document.getElementById('targetUser').value;
         let g = document.getElementById('targetGroupAdmin').value;
         let gCode = g.includes("الأولى") ? "g1" : g.includes("الثانية") ? "g2" : g.includes("الثالثة") ? "g3" : "g4";
         
-        let acc = JSON.parse(localStorage.getItem(t + '_groups') || "[]");
-        if(!acc.includes(gCode)) acc.push(gCode);
-        localStorage.setItem(t + '_groups', JSON.stringify(acc));
-        
-        alert("تم التوزيع بنجاح.");
+        db.ref('users_groups/' + t + '/' + gCode).set(true).then(() => {
+            alert("تم توزيع العسكري بنجاح عبر السيرفر.");
+        }).catch(e => alert("خطأ: " + e));
     }
 
     function checkGroups() {
-        let acc = JSON.parse(localStorage.getItem(currentUser + '_groups') || "[]");
-        acc.forEach(g => { if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'block'; });
+        ['g1', 'g2', 'g3', 'g4'].forEach(g => {
+            if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'none';
+        });
+
+        db.ref('users_groups/' + currentUser).on('value', snap => {
+            const acc = snap.val();
+            if(acc) {
+                Object.keys(acc).forEach(g => {
+                    if(acc[g] && document.getElementById('btn-' + g)) {
+                        document.getElementById('btn-' + g).style.display = 'block';
+                    }
+                });
+            }
+        });
     }
 
-    // --- نظام الاتصال (WebRTC) ---
+    // --- الاتصال (WebRTC) ---
     async function getMediaStream() {
         try {
             let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -570,7 +573,7 @@
         clearInterval(callTimer);
     }
 
-    // --- الشات والملاحة ---
+    // --- الشات ---
     function openChat(n) {
         document.getElementById('groupList').style.display = 'none';
         document.getElementById('activeChat').style.display = 'flex';
