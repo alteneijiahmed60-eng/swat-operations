@@ -33,11 +33,14 @@
         .alert-icon { font-size: 120px; color: white; animation: flash-alert 0.8s infinite; margin-bottom: 20px; }
         @keyframes flash-alert { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
 
+        /* شاشة تفعيل الصوت للأفراد */
+        #audioPermissionUI { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+
         /* تسجيل الدخول والواجهة */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
-        .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         
         #mainApp { display: none; height: 100vh; flex-direction: column; }
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
@@ -53,9 +56,16 @@
 </head>
 <body>
 
-<audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop></audio>
-<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop></audio>
+<audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop preload="auto"></audio>
+<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop preload="auto"></audio>
 <audio id="remoteAudio" autoplay></audio>
+
+<div id="audioPermissionUI">
+    <i class="fas fa-shield-alt" style="font-size: 80px; color: var(--neon); margin-bottom: 20px;"></i>
+    <h2 style="color: white;">تأكيد الجاهزية</h2>
+    <p style="color: var(--tactical); margin-bottom: 30px;">يرجى تأكيد جاهزيتك لاستقبال النداءات الطارئة والاتصالات اللاسلكية.</p>
+    <button class="btn-main" style="background: var(--neon); color: black; font-size: 1.2rem; padding: 15px;" onclick="enableAudioAndStart()">أؤكد جاهزيتي</button>
+</div>
 
 <div id="raidAlertUI">
     <i class="fas fa-exclamation-triangle alert-icon"></i>
@@ -116,7 +126,6 @@
             <h4 style="margin:0 0 10px 0; color: var(--neon);"><i class="fas fa-shield-alt"></i> لوحة قيادة العمليات</h4>
             
             <select id="targetUser" class="admin-select"></select>
-            
             <select id="targetGroupAdmin" class="admin-select">
                 <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
                 <option value="المجموعة القتالية الثانية">القتالية الثانية</option>
@@ -131,7 +140,7 @@
 
         <div style="text-align: center; margin-top: 30px;">
             <div style="font-size: 3rem; color: var(--neon);">00:00:00</div>
-            <p>جاهزية النظام: 100%</p>
+            <p>المنظومة متصلة ومؤمنة</p>
         </div>
     </div>
 
@@ -279,7 +288,12 @@
         });
 
         let saved = localStorage.getItem('session_user');
-        if (saved && personnelDB[saved]) { currentUser = saved; showMainApp(); }
+        if (saved && personnelDB[saved]) { 
+            currentUser = saved; 
+            // إظهار شاشة طلب تفعيل الصوت قبل الدخول للتطبيق
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('audioPermissionUI').style.display = 'flex';
+        }
     };
 
     function login() {
@@ -291,13 +305,27 @@
             if(pass === validPass) {
                 currentUser = id; 
                 localStorage.setItem('session_user', id); 
-                showMainApp();
+                
+                // إظهار شاشة طلب تفعيل الصوت لتجاوز حظر المتصفح
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('audioPermissionUI').style.display = 'flex';
             } else { alert("كلمة المرور غير صحيحة!"); }
         } else { alert("الرقم العسكري غير مسجل!"); }
     }
 
+    // هذه الدالة تتأكد إن المتصفح سمح بتشغيل الصوت
+    function enableAudioAndStart() {
+        // خدعة برمجية لتشغيل ملفات الصوت ثانية واحدة عشان المتصفح يسجل التفاعل
+        let siren = document.getElementById('sirenSound');
+        let ring = document.getElementById('ringtone');
+        siren.play().then(() => { siren.pause(); siren.currentTime = 0; }).catch(e=>{});
+        ring.play().then(() => { ring.pause(); ring.currentTime = 0; }).catch(e=>{});
+
+        document.getElementById('audioPermissionUI').style.display = 'none';
+        showMainApp();
+    }
+
     function showMainApp() {
-        document.getElementById('loginPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
         
@@ -310,7 +338,7 @@
         listenForRaidAlerts();
     }
 
-    // --- نظام إنذار المداهمة (الصوتي والشاشة الحمراء) ---
+    // --- نظام إنذار المداهمة المطور ---
     function triggerRaid() {
         if(confirm("تأكيد: إطلاق نداء مداهمة لجميع القوات؟")) {
             db.ref('alerts/raid').set({ 
@@ -331,7 +359,7 @@
                 
                 let siren = document.getElementById('sirenSound');
                 siren.currentTime = 0;
-                siren.play().catch(e => console.log("تحتاج تفاعل من المستخدم لتشغيل الصوت", e));
+                siren.play().catch(e => console.log("المتصفح منع الصوت", e));
             }
         });
     }
@@ -444,7 +472,7 @@
             if(data && data.status === 'ringing') {
                 currentCallRefId = currentUser;
                 setupCallUI(data.callerId, 'incoming');
-                document.getElementById('ringtone').play();
+                document.getElementById('ringtone').play().catch(e=>console.log(e));
             } 
             else if (data && data.status === 'accepted') {
                 if(data.callerVideo) { document.getElementById('peerImg').style.display = 'none'; document.getElementById('remoteVideo').style.display = 'block'; } 
