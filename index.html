@@ -22,7 +22,7 @@
         .pulse { width: 70px; height: 70px; background: var(--neon); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; color: #000; animation: pulse-anim 1.5s infinite; margin-bottom: 20px; }
         @keyframes pulse-anim { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.7); } 70% { box-shadow: 0 0 0 25px rgba(0, 255, 65, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); } }
 
-        .call-btns { display: flex; gap: 25px; margin-top: 20px; align-items: center; }
+        .call-btns { display: flex; gap: 25px; margin-top: 20px; align-items: center; justify-content: center; width: 100%; }
         .btn-call { width: 70px; height: 70px; border-radius: 50%; border: none; cursor: pointer; font-size: 25px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .accept { background: var(--neon); color: #000; }
         .reject { background: var(--danger); color: #fff; }
@@ -38,16 +38,20 @@
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
         .nav-item { color: #555; font-size: 22px; cursor: pointer; }
         .nav-item.active { color: var(--neon); }
-        .tab-content { padding: 15px; flex: 1; overflow-y: auto; }
+        .tab-content { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 80px; }
         
         .chat-box { height: calc(100vh - 280px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid #333; margin-bottom: 10px; }
         .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); }
         .msg img { width: 35px; height: 35px; border-radius: 50%; }
+
+        /* تنسيق لوحة الإدارة */
+        .admin-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop></audio>
+<audio id="alarmSound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3"></audio>
 <audio id="remoteAudio" autoplay></audio>
 
 <div id="callUI">
@@ -96,7 +100,25 @@
     </div>
 
     <div id="homeSec" class="tab-content">
-        <div style="text-align: center; margin-top: 50px;">
+        
+        <div id="adminPanel" style="display:none; background: #1c2126; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-right: 4px solid var(--neon);">
+            <h4 style="margin:0 0 10px 0; color: var(--neon);"><i class="fas fa-shield-alt"></i> لوحة قيادة العمليات</h4>
+            
+            <select id="targetUser" class="admin-select"></select>
+            
+            <select id="targetGroupAdmin" class="admin-select">
+                <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
+                <option value="المجموعة القتالية الثانية">القتالية الثانية</option>
+                <option value="المجموعة القتالية الثالثة">القتالية الثالثة</option>
+                <option value="قلم القوة">قلم القوة</option>
+            </select>
+            
+            <button class="btn-main" style="margin-bottom: 10px; font-size: 14px;" onclick="manageMember('add')"><i class="fas fa-user-plus"></i> توزيع العسكري للمجموعة</button>
+            <button class="btn-main" style="background: var(--danger); color: #fff; margin-bottom: 10px; font-size: 14px;" onclick="triggerRaid()"><i class="fas fa-exclamation-triangle"></i> إطلاق نداء مداهمة</button>
+            <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px;" onclick="clearChat()"><i class="fas fa-trash-alt"></i> مسح دردشة المشترك</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
             <div style="font-size: 3rem; color: var(--neon);">00:00:00</div>
             <p>جاهزية النظام: 100%</p>
         </div>
@@ -113,6 +135,10 @@
     <div id="chatSec" class="tab-content" style="display: none; padding: 10px;">
         <div id="groupList">
             <button class="btn-main" style="margin-bottom: 10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
+            <button id="btn-g1" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الأولى')">القتالية الأولى</button>
+            <button id="btn-g2" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الثانية')">القتالية الثانية</button>
+            <button id="btn-g3" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('المجموعة القتالية الثالثة')">القتالية الثالثة</button>
+            <button id="btn-g4" class="btn-main" style="display:none; margin-bottom: 10px;" onclick="openChat('قلم القوة')">قلم القوة</button>
         </div>
         <div id="activeChat" style="display: none; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -230,8 +256,22 @@
     let callTimer;
     let isMuted = false;
     let isVideoOn = false;
+    
+    // قائمة الضباط اللي تطلعلهم لوحة الإدارة
+    const officersList = ["1321", "1408", "1549", "1565", "1587", "1739", "1886"];
 
     const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+
+    window.onload = function() {
+        // تعبئة قائمة الأفراد للضباط
+        const sel = document.getElementById('targetUser');
+        Object.keys(personnelDB).sort().forEach(id => {
+            let o = document.createElement('option'); o.value = id; o.innerText = id + " - " + personnelDB[id].name; sel.appendChild(o);
+        });
+
+        let saved = localStorage.getItem('session_user');
+        if (saved && personnelDB[saved]) { currentUser = saved; showMainApp(); }
+    };
 
     function login() {
         let id = document.getElementById('milId').value.trim();
@@ -243,33 +283,75 @@
                 currentUser = id; 
                 localStorage.setItem('session_user', id); 
                 showMainApp();
-            } else {
-                alert("كلمة المرور غير صحيحة!");
-            }
-        } else { 
-            alert("الرقم العسكري غير مسجل!"); 
-        }
+            } else { alert("كلمة المرور غير صحيحة!"); }
+        } else { alert("الرقم العسكري غير مسجل!"); }
     }
 
     function showMainApp() {
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
+        
+        // إظهار لوحة الضباط
+        if(officersList.includes(currentUser)) {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+        
+        checkGroups();
         listenForCalls();
+        listenForRaidAlerts();
     }
 
-    // --- جلب الميديا (الصوت والفيديو مخفي افتراضياً) ---
-    async function getMediaStream() {
-        try {
-            let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            stream.getVideoTracks().forEach(t => t.enabled = false); // إيقاف الكاميرا افتراضياً
-            return stream;
-        } catch(e) {
-            return await navigator.mediaDevices.getUserMedia({ audio: true }); // إذا مافي كاميرا يكتفي بالمايك
+    // --- خواص الضباط ---
+    function manageMember(action) {
+        let t = document.getElementById('targetUser').value;
+        let g = document.getElementById('targetGroupAdmin').value;
+        let gCode = g.includes("الأولى") ? "g1" : g.includes("الثانية") ? "g2" : g.includes("الثالثة") ? "g3" : "g4";
+        
+        let acc = JSON.parse(localStorage.getItem(t + '_groups') || "[]");
+        if(!acc.includes(gCode)) acc.push(gCode);
+        localStorage.setItem(t + '_groups', JSON.stringify(acc));
+        
+        alert("تم توزيع العسكري بنجاح للصلاحية المطلوبة.");
+    }
+
+    function checkGroups() {
+        let acc = JSON.parse(localStorage.getItem(currentUser + '_groups') || "[]");
+        acc.forEach(g => { if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'block'; });
+    }
+
+    function triggerRaid() {
+        if(confirm("تأكيد: هل أنت متأكد من إطلاق نداء مداهمة لجميع القوات؟")) {
+            // إرسال تنبيه عبر الفايربيس للكل
+            db.ref('alerts/raid').set({ 
+                time: Date.now(), 
+                byRank: personnelDB[currentUser].rank, 
+                byName: personnelDB[currentUser].name 
+            });
+            alert("تم إطلاق نداء المداهمة بنجاح!");
         }
     }
 
-    // --- أزرار التحكم النشطة (ميوت وفيديو) ---
+    function listenForRaidAlerts() {
+        db.ref('alerts/raid').on('value', snap => {
+            const data = snap.val();
+            // إذا التنبيه صار خلال آخر 15 ثانية (عشان ما يرن قديم)
+            if(data && (Date.now() - data.time < 15000)) {
+                document.getElementById('alarmSound').play();
+                alert(`🚨 نداء مداهمة عاجل 🚨\nمن: ${data.byRank} / ${data.byName}\nعلى جميع القوات الاستعداد فوراً!`);
+            }
+        });
+    }
+
+    // --- نظام الاتصال (WebRTC) ---
+    async function getMediaStream() {
+        try {
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            stream.getVideoTracks().forEach(t => t.enabled = false); 
+            return stream;
+        } catch(e) { return await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    }
+
     function toggleMute() {
         if(localStream && localStream.getAudioTracks().length > 0) {
             isMuted = !isMuted;
@@ -288,18 +370,13 @@
             btn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
             btn.style.background = isVideoOn ? 'var(--neon)' : '#333';
             btn.style.color = isVideoOn ? '#000' : '#fff';
-            
-            // إبلاغ الطرف الآخر بتشغيل/إيقاف الكاميرا
             if(currentCallRefId) {
                 let field = (currentUser === currentCallRefId) ? 'receiverVideo' : 'callerVideo';
                 db.ref('calls/' + currentCallRefId + '/' + field).set(isVideoOn);
             }
-        } else {
-            alert("الكاميرا غير متوفرة أو لم تمنح الصلاحية");
-        }
+        } else { alert("الكاميرا غير متوفرة"); }
     }
 
-    // --- نظام الاتصال ---
     async function startCall() {
         let tid = document.getElementById('targetId').value.trim();
         if(!personnelDB[tid] || tid === currentUser) return alert("الرقم خطأ أو غير صالح");
@@ -325,14 +402,9 @@
         await peerConnection.setLocalDescription(offer);
 
         db.ref('calls/' + tid).set({
-            offer: { type: offer.type, sdp: offer.sdp },
-            callerId: currentUser,
-            status: 'ringing',
-            callerVideo: false,
-            receiverVideo: false
+            offer: { type: offer.type, sdp: offer.sdp }, callerId: currentUser, status: 'ringing', callerVideo: false, receiverVideo: false
         });
 
-        // الاستماع لرد المستلم
         db.ref(`calls/${tid}`).on('value', async snap => {
             const data = snap.val();
             if(data && data.status === 'accepted') {
@@ -340,21 +412,12 @@
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
                     startActiveCallUI();
                 }
-                
-                // تحديث الكاميرا للطرف الآخر
-                if(data.receiverVideo) {
-                    document.getElementById('peerImg').style.display = 'none';
-                    document.getElementById('remoteVideo').style.display = 'block';
-                } else {
-                    document.getElementById('peerImg').style.display = 'block';
-                    document.getElementById('remoteVideo').style.display = 'none';
-                }
+                if(data.receiverVideo) { document.getElementById('peerImg').style.display = 'none'; document.getElementById('remoteVideo').style.display = 'block'; } 
+                else { document.getElementById('peerImg').style.display = 'block'; document.getElementById('remoteVideo').style.display = 'none'; }
             }
         });
 
-        db.ref(`calls/${tid}/receiverCandidates`).on('child_added', snap => {
-            peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
-        });
+        db.ref(`calls/${tid}/receiverCandidates`).on('child_added', snap => { peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); });
     }
 
     function listenForCalls() {
@@ -366,14 +429,8 @@
                 document.getElementById('ringtone').play();
             } 
             else if (data && data.status === 'accepted') {
-                // تحديث الكاميرا للطرف الآخر (المتصل)
-                if(data.callerVideo) {
-                    document.getElementById('peerImg').style.display = 'none';
-                    document.getElementById('remoteVideo').style.display = 'block';
-                } else {
-                    document.getElementById('peerImg').style.display = 'block';
-                    document.getElementById('remoteVideo').style.display = 'none';
-                }
+                if(data.callerVideo) { document.getElementById('peerImg').style.display = 'none'; document.getElementById('remoteVideo').style.display = 'block'; } 
+                else { document.getElementById('peerImg').style.display = 'block'; document.getElementById('remoteVideo').style.display = 'none'; }
             }
             else if (!data) { hideCallUI(); }
         });
@@ -402,14 +459,9 @@
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
 
-        await db.ref('calls/' + currentUser).update({
-            answer: { type: answer.type, sdp: answer.sdp },
-            status: 'accepted'
-        });
+        await db.ref('calls/' + currentUser).update({ answer: { type: answer.type, sdp: answer.sdp }, status: 'accepted' });
 
-        db.ref(`calls/${currentUser}/callerCandidates`).on('child_added', snap => {
-            peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
-        });
+        db.ref(`calls/${currentUser}/callerCandidates`).on('child_added', snap => { peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); });
 
         startActiveCallUI();
     }
@@ -433,9 +485,12 @@
     }
 
     function startActiveCallUI() {
-        document.getElementById('callHeader').style.display = 'none'; // إخفاء الأيقونة والنص
-        document.getElementById('callActionBtns').style.display = 'none'; // إخفاء زر الرد العادي
-        document.getElementById('activeCallBtns').style.display = 'flex'; // إظهار أزرار المايك والكاميرا والإغلاق
+        // إخفاء الأيقونة الخضراء العلوية والنص
+        document.getElementById('callHeader').style.display = 'none';
+        
+        // تبديل الأزرار لتظهر أزرار المايك والكاميرا والإغلاق
+        document.getElementById('callActionBtns').style.display = 'none';
+        document.getElementById('activeCallBtns').style.display = 'flex';
         document.getElementById('activeCallTimer').style.display = 'block';
         
         let sec = 0;
@@ -457,14 +512,9 @@
         if(peerConnection) peerConnection.close();
         currentCallRefId = "";
         
-        // إعادة ضبط الأزرار والواجهة
-        isMuted = false;
-        isVideoOn = false;
-        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-microphone"></i>';
-        document.getElementById('muteBtn').style.background = '#333';
-        document.getElementById('videoBtn').innerHTML = '<i class="fas fa-video-slash"></i>';
-        document.getElementById('videoBtn').style.background = '#333';
-        document.getElementById('videoBtn').style.color = '#fff';
+        isMuted = false; isVideoOn = false;
+        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-microphone"></i>'; document.getElementById('muteBtn').style.background = '#333';
+        document.getElementById('videoBtn').innerHTML = '<i class="fas fa-video-slash"></i>'; document.getElementById('videoBtn').style.background = '#333'; document.getElementById('videoBtn').style.color = '#fff';
         
         document.getElementById('callUI').style.display = 'none';
         document.getElementById('callHeader').style.display = 'flex';
@@ -477,7 +527,7 @@
         clearInterval(callTimer);
     }
 
-    // --- الشات ---
+    // --- الشات والملاحة ---
     function openChat(n) {
         document.getElementById('groupList').style.display = 'none';
         document.getElementById('activeChat').style.display = 'flex';
@@ -501,6 +551,7 @@
         inp.value = "";
     }
 
+    function clearChat() { if(confirm("مسح الشات المشترك بالكامل؟")) db.ref('chats/المجموعة المشتركة').remove(); }
     function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
     function switchTab(t, el) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
@@ -509,11 +560,6 @@
         el.classList.add('active');
     }
     function logout() { localStorage.removeItem('session_user'); location.reload(); }
-    
-    window.onload = function() {
-        let saved = localStorage.getItem('session_user');
-        if (saved && personnelDB[saved]) { currentUser = saved; showMainApp(); }
-    };
 </script>
 </body>
 </html>
