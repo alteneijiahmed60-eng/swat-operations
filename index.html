@@ -13,27 +13,23 @@
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         
         /* شاشات الاتصال */
-        #incomingCall { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #incomingCall, #callingStatus { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         #inCallUI { display: none; position: fixed; inset: 0; background: #000; z-index: 5001; flex-direction: column; align-items: center; justify-content: center; }
         .call-anim { width: 100px; height: 100px; border-radius: 50%; background: var(--neon); animation: pulse 1.5s infinite; display: flex; align-items: center; justify-content: center; font-size: 40px; color: black; margin-bottom: 20px; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.7); } 70% { box-shadow: 0 0 0 30px rgba(0, 255, 65, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); } }
 
-        /* تسجيل الدخول */
+        /* الواجهة */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid var(--tactical-dark); }
         input, select { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid var(--tactical-dark); color: var(--tactical-light); border-radius: 5px; box-sizing: border-box; text-align: center; }
-
-        /* التطبيق الرئيسي */
         #mainApp { display: none; height: 100vh; flex-direction: column; }
         .header { background: var(--panel); padding: 10px 20px; border-bottom: 2px solid var(--tactical-dark); display: flex; justify-content: space-between; align-items: center; }
         .header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--tactical-light); }
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
-        
         .chat-container { display: none; flex-direction: column; height: 100%; }
         .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
         .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 12px; border-right: 4px solid var(--tactical-dark); }
-        .msg-sender-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        
+        .msg img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
         .nav-item { color: #555; font-size: 24px; cursor: pointer; }
         .nav-item.active { color: var(--tactical-light); }
@@ -53,9 +49,15 @@
     </div>
 </div>
 
+<div id="callingStatus">
+    <div class="call-anim" style="background:var(--tactical-dark);"><i class="fas fa-signal"></i></div>
+    <h2>جاري الاتصال بالزميل...</h2>
+    <button class="btn-main" style="background:var(--danger); width:70px; height:70px; border-radius:50%; margin-top:50px;" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+</div>
+
 <div id="inCallUI">
     <div class="call-anim" style="animation:none; background:#333; color:var(--neon);"><i class="fas fa-user-shield"></i></div>
-    <h2 id="activeCallName">في مكالمة نشطة</h2>
+    <h2 id="activeCallName">خط آمن نشط</h2>
     <p id="callTimer">00:00</p>
     <button class="btn-main" style="background:var(--danger); width:70px; height:70px; border-radius:50%; margin-top:50px;" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
 </div>
@@ -75,34 +77,22 @@
             <img src="" id="headerImg">
             <div id="userDisplay" style="font-weight:bold; font-size:13px;">--</div>
         </div>
-        <button onclick="logout()" style="background:none; color:white; border:1px solid #444; padding:5px 10px; border-radius:5px; font-size:10px;">خروج</button>
+        <button onclick="logout()" style="background:none; color:white; border:1px solid #444; border-radius:5px; font-size:10px; padding:5px;">خروج</button>
     </div>
 
     <div class="content">
         <div id="homeSec" class="tab-content">
-            <div id="adminPanel" style="display:none; background:#1c2126; padding:15px; border-radius:10px; margin-bottom:20px; border-right:4px solid var(--neon);">
-                <h4 style="margin:0 0 10px 0;">لوحة الإدارة</h4>
-                <select id="targetUser"></select>
-                <select id="targetGroupAdmin">
-                    <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
-                    <option value="المجموعة القتالية الثانية">القتالية الثانية</option>
-                    <option value="المجموعة القتالية الثالثة">القتالية الثالثة</option>
-                    <option value="قلم القوة">قلم القوة</option>
-                </select>
-                <button class="btn-main" style="padding:8px; font-size:12px; margin-bottom:5px;" onclick="manageMember('add')">توزيع العسكري</button>
-                <button class="btn-main" style="background:var(--danger); color:white;" onclick="clearChat()">مسح شات المجموعة</button>
-            </div>
-            <div style="text-align:center; padding-top:20px;">
+            <div style="text-align:center; padding-top:50px;">
                 <div id="timer" style="font-size:3rem; color:var(--neon);">00:00:00</div>
-                <p>حالة الاستعداد: نشط</p>
+                <p>جاهزية العمليات: نشط</p>
             </div>
         </div>
 
         <div id="callSec" class="tab-content" style="display:none;">
             <div style="background:var(--panel); padding:20px; border-radius:15px; border:1px solid #333;">
-                <h3>اتصال عسكري مباشر</h3>
-                <input type="number" id="targetMilId" placeholder="الرقم العسكري للزميل">
-                <button class="btn-main" style="background:var(--neon);" onclick="startCall()"><i class="fas fa-phone-alt"></i> بدء الاتصال</button>
+                <h3>اتصال برقم عسكري</h3>
+                <input type="number" id="targetMilId" placeholder="الرقم العسكري للمستلم">
+                <button class="btn-main" style="background:var(--neon);" onclick="startCall()"><i class="fas fa-phone-alt"></i> طلب اتصال</button>
             </div>
         </div>
 
@@ -110,19 +100,14 @@
             <div id="groupList">
                 <button class="btn-main" style="margin-bottom:10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
                 <button id="btn-g1" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الأولى')">القتالية الأولى</button>
-                <button id="btn-g2" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثانية')">القتالية الثانية</button>
-                <button id="btn-g3" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثالثة')">القتالية الثالثة</button>
-                <button id="btn-g4" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('قلم القوة')">قلم القوة</button>
             </div>
             <div id="activeChat" class="chat-container">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <strong id="currentGroupName"></strong>
-                    <button onclick="backToGroups()" style="background:none; color:white; border:1px solid #444; border-radius:5px;">رجوع</button>
+                    <button onclick="backToGroups()" style="background:none; color:white; border:1px solid #444;">رجوع</button>
                 </div>
                 <div id="chatBox" class="chat-box"></div>
                 <div class="input-area">
-                    <input type="file" id="fileInp" style="display:none;" onchange="handleFile(this)">
-                    <button onclick="document.getElementById('fileInp').click()" style="background:none; border:none; color:white;"><i class="fas fa-paperclip"></i></button>
                     <input type="text" id="msgInput" placeholder="رسالة...">
                     <button onclick="sendMsg()" style="background:none; border:none; color:var(--neon);"><i class="fas fa-paper-plane"></i></button>
                 </div>
@@ -153,6 +138,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // قاعدة البيانات كاملة
     const personnelDB = {
         "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
         "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
@@ -227,71 +213,50 @@
     };
 
     let currentUser = "";
-    let currentGroup = "المجموعة المشتركة";
+    let currentCallTarget = "";
 
     window.onload = function() {
         let saved = localStorage.getItem('session_user');
-        if (saved && personnelDB[saved]) {
-            currentUser = saved; showMainApp(); checkGroups(); listenForCalls();
-        }
-        const sel = document.getElementById('targetUser');
-        Object.keys(personnelDB).sort().forEach(id => {
-            let o = document.createElement('option'); o.value = id; o.innerText = id + " - " + personnelDB[id].name; sel.appendChild(o);
-        });
+        if (saved && personnelDB[saved]) { currentUser = saved; showMainApp(); listenForCalls(); }
     };
 
     function login() {
         let id = document.getElementById('milId').value.trim();
-        if(personnelDB[id]) { currentUser = id; localStorage.setItem('session_user', id); showMainApp(); checkGroups(); listenForCalls(); }
-        else { alert("الرقم العسكري غير مسجل."); }
+        if(personnelDB[id]) { currentUser = id; localStorage.setItem('session_user', id); showMainApp(); listenForCalls(); }
     }
 
     function showMainApp() {
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
-        if(["1321", "1408", "1549"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
         document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
         document.getElementById('headerImg').src = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
     }
 
-    // --- نظام الشات ---
-    function openChat(n) {
-        currentGroup = n;
-        document.getElementById('groupList').style.display = 'none';
-        document.getElementById('activeChat').style.display = 'flex';
-        document.getElementById('currentGroupName').innerText = n;
-        db.ref('chats/' + currentGroup).on('value', (snapshot) => {
-            const box = document.getElementById('chatBox'); box.innerHTML = "";
-            snapshot.forEach((child) => {
-                const m = child.val();
-                box.innerHTML += `<div class="msg"><img src="${m.photo || 'https://via.placeholder.com/150'}" class="msg-sender-img"><div><div class="msg-name">${m.rank} / ${m.name}</div><div>${m.text}</div></div></div>`;
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    function sendMsg() {
-        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
-        const p = personnelDB[currentUser];
-        db.ref('chats/' + currentGroup).push({ id: currentUser, name: p.name, rank: p.rank, text: inp.value, photo: localStorage.getItem(currentUser + '_photo') || "", time: Date.now() });
-        inp.value = "";
-    }
-
-    function handleFile(input) {
-        if (input.files && input.files[0]) {
-            let r = new FileReader(); r.onload = e => {
-                let content = `<img src="${e.target.result}" class="chat-img">`;
-                db.ref('chats/' + currentGroup).push({ id: currentUser, name: personnelDB[currentUser].name, rank: personnelDB[currentUser].rank, text: content, photo: localStorage.getItem(currentUser + '_photo') || "" });
-            }; r.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // --- نظام الاتصال ---
+    // --- نظام الاتصال المحدث ---
     function startCall() {
         let target = document.getElementById('targetMilId').value;
         if(!target || !personnelDB[target]) return alert("الرقم خطأ!");
-        db.ref('calls/' + target).set({ callerName: personnelDB[currentUser].name, status: 'ringing' });
-        alert("جاري الاتصال...");
+        currentCallTarget = target;
+        
+        // إنشاء السجل في Firebase
+        db.ref('calls/' + target).set({
+            callerId: currentUser,
+            callerName: personnelDB[currentUser].name,
+            status: 'ringing'
+        });
+        
+        document.getElementById('callingStatus').style.display = 'flex';
+        
+        // الطرف المتصل يستمع لو المستلم وافق
+        db.ref('calls/' + target).on('value', (snap) => {
+            if(snap.val() && snap.val().status === 'accepted') {
+                document.getElementById('callingStatus').style.display = 'none';
+                document.getElementById('inCallUI').style.display = 'flex';
+            } else if (!snap.val()) {
+                document.getElementById('callingStatus').style.display = 'none';
+                document.getElementById('inCallUI').style.display = 'none';
+            }
+        });
     }
 
     function listenForCalls() {
@@ -302,68 +267,61 @@
                 document.getElementById('callerNameDisplay').innerText = call.callerName;
                 document.getElementById('ringtone').play();
             } else if(call && call.status === 'accepted') {
-                showInCallUI();
-            } else { closeCallUI(); }
+                document.getElementById('incomingCall').style.display = 'none';
+                document.getElementById('inCallUI').style.display = 'flex';
+                document.getElementById('ringtone').pause();
+            } else if (!call) {
+                document.getElementById('incomingCall').style.display = 'none';
+                document.getElementById('inCallUI').style.display = 'none';
+                document.getElementById('ringtone').pause();
+            }
         });
     }
 
     function acceptCall() {
         db.ref('calls/' + currentUser).update({ status: 'accepted' });
-        showInCallUI();
-    }
-
-    function showInCallUI() {
-        document.getElementById('incomingCall').style.display = 'none';
-        document.getElementById('inCallUI').style.display = 'flex';
-        document.getElementById('ringtone').pause();
     }
 
     function endCall() {
+        // مسح المكالمة من الطرفين
         db.ref('calls/' + currentUser).remove();
-        // لإغلاق عند الطرفين، نحتاج مسح السجل
-        let target = document.getElementById('targetMilId').value;
-        if(target) db.ref('calls/' + target).remove();
-        closeCallUI();
+        if(currentCallTarget) db.ref('calls/' + currentCallTarget).remove();
+        currentCallTarget = "";
     }
 
-    function closeCallUI() {
-        document.getElementById('incomingCall').style.display = 'none';
-        document.getElementById('inCallUI').style.display = 'none';
-        document.getElementById('ringtone').pause();
+    // --- نظام الشات والتنقل ---
+    function openChat(n) {
+        document.getElementById('groupList').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        document.getElementById('currentGroupName').innerText = n;
+        db.ref('chats/' + n).on('value', (snapshot) => {
+            const box = document.getElementById('chatBox'); box.innerHTML = "";
+            snapshot.forEach((child) => {
+                const m = child.val();
+                box.innerHTML += `<div class="msg"><img src="${m.photo || 'https://via.placeholder.com/150'}"><div><div class="msg-name">${m.rank} / ${m.name}</div><div>${m.text}</div></div></div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        });
     }
 
-    // --- الإدارة والتنقل ---
-    function manageMember(action) {
-        let t = document.getElementById('targetUser').value, g = document.getElementById('targetGroupAdmin').value;
-        let gCode = g.includes("الأولى") ? "g1" : g.includes("الثانية") ? "g2" : g.includes("الثالثة") ? "g3" : "g4";
-        let acc = JSON.parse(localStorage.getItem(t + '_groups') || "[]");
-        if(!acc.includes(gCode)) acc.push(gCode);
-        localStorage.setItem(t + '_groups', JSON.stringify(acc));
-        alert("تم التوزيع بنجاح");
+    function sendMsg() {
+        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
+        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
+            name: personnelDB[currentUser].name,
+            rank: personnelDB[currentUser].rank,
+            text: inp.value,
+            photo: localStorage.getItem(currentUser + '_photo') || ""
+        });
+        inp.value = "";
     }
 
-    function checkGroups() {
-        let acc = JSON.parse(localStorage.getItem(currentUser + '_groups') || "[]");
-        acc.forEach(g => { if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'block'; });
-    }
-
-    function clearChat() { let g = document.getElementById('targetGroupAdmin').value; if(confirm("مسح؟")) db.ref('chats/' + g).remove(); }
-    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; db.ref('chats/' + currentGroup).off(); }
+    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
     function switchTab(t, el) { 
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); 
         document.getElementById(t + 'Sec').style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
     }
     function logout() { localStorage.removeItem('session_user'); location.reload(); }
-    function updateProfilePhoto(input) {
-        if (input.files && input.files[0]) {
-            let r = new FileReader(); r.onload = e => {
-                localStorage.setItem(currentUser + '_photo', e.target.result);
-                document.getElementById('headerImg').src = e.target.result;
-                document.getElementById('profilePrev').src = e.target.result;
-            }; r.readAsDataURL(input.files[0]);
-        }
-    }
 </script>
 </body>
 </html>
