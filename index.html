@@ -11,7 +11,7 @@
         :root { --bg: #000; --panel: #15191c; --neon: #00ff41; --danger: #ff0000; --tactical: #968c83; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         
-        /* واجهة المكالمة الموحدة */
+        /* واجهة المكالمة */
         #callUI { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .call-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon); }
         .call-info h2 { margin: 10px 0; font-size: 1.4rem; }
@@ -28,6 +28,11 @@
         .reject { background: var(--danger); color: #fff; }
         .control { background: #333; color: #fff; }
 
+        /* شاشة إنذار المداهمة */
+        #raidAlertUI { display: none; position: fixed; inset: 0; background: rgba(255, 0, 0, 0.95); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .alert-icon { font-size: 120px; color: white; animation: flash-alert 0.8s infinite; margin-bottom: 20px; }
+        @keyframes flash-alert { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+
         /* تسجيل الدخول والواجهة */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
@@ -43,16 +48,22 @@
         .chat-box { height: calc(100vh - 280px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid #333; margin-bottom: 10px; }
         .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); }
         .msg img { width: 35px; height: 35px; border-radius: 50%; }
-
-        /* تنسيق لوحة الإدارة */
         .admin-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop></audio>
-<audio id="alarmSound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3"></audio>
+<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop></audio>
 <audio id="remoteAudio" autoplay></audio>
+
+<div id="raidAlertUI">
+    <i class="fas fa-exclamation-triangle alert-icon"></i>
+    <h1 style="font-size: 3rem; color: white; margin: 0;">نداء مداهمة!</h1>
+    <h3 id="raidAlertSender" style="color: white; margin-top: 10px;">بأمر من: --</h3>
+    <p style="color: white; font-size: 1.2rem; margin-bottom: 40px;">الرجاء من جميع القوات الاستعداد فوراً</p>
+    <button class="btn-main" style="background: #000; color: #fff; width: 250px; font-size: 1.2rem;" onclick="dismissRaidAlert()">علم (إيقاف الإنذار)</button>
+</div>
 
 <div id="callUI">
     <div id="callHeader">
@@ -114,7 +125,7 @@
             </select>
             
             <button class="btn-main" style="margin-bottom: 10px; font-size: 14px;" onclick="manageMember('add')"><i class="fas fa-user-plus"></i> توزيع العسكري للمجموعة</button>
-            <button class="btn-main" style="background: var(--danger); color: #fff; margin-bottom: 10px; font-size: 14px;" onclick="triggerRaid()"><i class="fas fa-exclamation-triangle"></i> إطلاق نداء مداهمة</button>
+            <button class="btn-main" style="background: var(--danger); color: #fff; margin-bottom: 10px; font-size: 14px;" onclick="triggerRaid()"><i class="fas fa-exclamation-triangle"></i> إطلاق نداء مداهمة (صوتي)</button>
             <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px;" onclick="clearChat()"><i class="fas fa-trash-alt"></i> مسح دردشة المشترك</button>
         </div>
 
@@ -257,13 +268,11 @@
     let isMuted = false;
     let isVideoOn = false;
     
-    // قائمة الضباط اللي تطلعلهم لوحة الإدارة
+    // قائمة الضباط
     const officersList = ["1321", "1408", "1549", "1565", "1587", "1739", "1886"];
-
     const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
     window.onload = function() {
-        // تعبئة قائمة الأفراد للضباط
         const sel = document.getElementById('targetUser');
         Object.keys(personnelDB).sort().forEach(id => {
             let o = document.createElement('option'); o.value = id; o.innerText = id + " - " + personnelDB[id].name; sel.appendChild(o);
@@ -292,7 +301,6 @@
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
         
-        // إظهار لوحة الضباط
         if(officersList.includes(currentUser)) {
             document.getElementById('adminPanel').style.display = 'block';
         }
@@ -302,7 +310,40 @@
         listenForRaidAlerts();
     }
 
-    // --- خواص الضباط ---
+    // --- نظام إنذار المداهمة (الصوتي والشاشة الحمراء) ---
+    function triggerRaid() {
+        if(confirm("تأكيد: إطلاق نداء مداهمة لجميع القوات؟")) {
+            db.ref('alerts/raid').set({ 
+                time: Date.now(), 
+                byRank: personnelDB[currentUser].rank, 
+                byName: personnelDB[currentUser].name 
+            });
+        }
+    }
+
+    function listenForRaidAlerts() {
+        db.ref('alerts/raid').on('value', snap => {
+            const data = snap.val();
+            // إذا كان التنبيه جديد (خلال آخر 15 ثانية)
+            if(data && (Date.now() - data.time < 15000)) {
+                document.getElementById('raidAlertSender').innerText = `بأمر من: ${data.byRank} / ${data.byName}`;
+                document.getElementById('raidAlertUI').style.display = 'flex';
+                
+                let siren = document.getElementById('sirenSound');
+                siren.currentTime = 0;
+                siren.play().catch(e => console.log("تحتاج تفاعل من المستخدم لتشغيل الصوت", e));
+            }
+        });
+    }
+
+    function dismissRaidAlert() {
+        document.getElementById('raidAlertUI').style.display = 'none';
+        let siren = document.getElementById('sirenSound');
+        siren.pause();
+        siren.currentTime = 0;
+    }
+
+    // --- خواص الإدارة ---
     function manageMember(action) {
         let t = document.getElementById('targetUser').value;
         let g = document.getElementById('targetGroupAdmin').value;
@@ -312,35 +353,12 @@
         if(!acc.includes(gCode)) acc.push(gCode);
         localStorage.setItem(t + '_groups', JSON.stringify(acc));
         
-        alert("تم توزيع العسكري بنجاح للصلاحية المطلوبة.");
+        alert("تم التوزيع بنجاح.");
     }
 
     function checkGroups() {
         let acc = JSON.parse(localStorage.getItem(currentUser + '_groups') || "[]");
         acc.forEach(g => { if(document.getElementById('btn-' + g)) document.getElementById('btn-' + g).style.display = 'block'; });
-    }
-
-    function triggerRaid() {
-        if(confirm("تأكيد: هل أنت متأكد من إطلاق نداء مداهمة لجميع القوات؟")) {
-            // إرسال تنبيه عبر الفايربيس للكل
-            db.ref('alerts/raid').set({ 
-                time: Date.now(), 
-                byRank: personnelDB[currentUser].rank, 
-                byName: personnelDB[currentUser].name 
-            });
-            alert("تم إطلاق نداء المداهمة بنجاح!");
-        }
-    }
-
-    function listenForRaidAlerts() {
-        db.ref('alerts/raid').on('value', snap => {
-            const data = snap.val();
-            // إذا التنبيه صار خلال آخر 15 ثانية (عشان ما يرن قديم)
-            if(data && (Date.now() - data.time < 15000)) {
-                document.getElementById('alarmSound').play();
-                alert(`🚨 نداء مداهمة عاجل 🚨\nمن: ${data.byRank} / ${data.byName}\nعلى جميع القوات الاستعداد فوراً!`);
-            }
-        });
     }
 
     // --- نظام الاتصال (WebRTC) ---
@@ -485,10 +503,7 @@
     }
 
     function startActiveCallUI() {
-        // إخفاء الأيقونة الخضراء العلوية والنص
         document.getElementById('callHeader').style.display = 'none';
-        
-        // تبديل الأزرار لتظهر أزرار المايك والكاميرا والإغلاق
         document.getElementById('callActionBtns').style.display = 'none';
         document.getElementById('activeCallBtns').style.display = 'flex';
         document.getElementById('activeCallTimer').style.display = 'block';
