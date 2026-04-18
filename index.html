@@ -32,30 +32,23 @@
 
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
         
-        .group-selector { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
-        .group-btn { 
-            background: #1c2126; border: 1px solid var(--tactical-dark); color: var(--tactical-light); 
-            padding: 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px;
-            transition: 0.3s;
-        }
-        .group-logo { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
-        .group-btn-text { font-size: 1.1rem; font-weight: bold; }
-
-        .chat-container { display: none; flex-direction: column; height: 100%; }
-        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
-        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; max-width: 85%; }
-        .msg img { width: 30px; height: 30px; border-radius: 50%; }
+        .timer-card { background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; margin-top: 10px; }
+        .timer-display { font-size: 2.5rem; font-weight: bold; margin: 15px 0; color: var(--neon); text-shadow: 0 0 10px rgba(0,255,65,0.3); }
 
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
         .nav-item { color: #555; font-size: 24px; cursor: pointer; }
         .nav-item.active { color: var(--tactical-light); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; transition: 0.2s; }
         .btn-main { background: var(--tactical-dark); color: black; }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--tactical-dark); color: white; padding: 5px 10px; font-size: 11px; width: auto; }
 
         #emergencyOverlay { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.95); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .timer-display { font-size: 2rem; font-weight: bold; margin: 10px 0; color: var(--neon); }
+        .chat-container { display: none; flex-direction: column; height: 100%; }
+        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
+        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .msg img { width: 35px; height: 35px; border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -90,55 +83,58 @@
                 <div id="statusLabel" style="font-size: 10px; color: var(--danger);">خارج الخدمة</div>
             </div>
         </div>
-        <div style="color: var(--tactical-light); font-size: 12px;">المناوبين: <span id="activeCount">1</span></div>
+        <button class="btn btn-outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
 
     <div class="content">
         <div id="homeSec" class="tab-content">
             <div id="adminPanel" style="background: var(--tactical-dark); color: black; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; display: none;">
-                <h4 style="margin:0">لوحة القيادة</h4>
-                <input type="text" id="raidMsg" placeholder="تعليمات المداهمة..." style="background: white; color: black;">
-                <button class="btn btn-danger" onclick="triggerRaid()">إطلاق النداء</button>
+                <h4 style="margin:0 0 10px 0;">لوحة القيادة والسيطرة</h4>
+                <input type="text" id="raidMsg" placeholder="اكتب تعليمات المداهمة..." style="background: white; color: black; border: none;">
+                <button class="btn btn-danger" onclick="triggerRaid()">إطلاق نداء مداهمة</button>
             </div>
-            <div class="timer-card" style="background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333;">
-                <small>مدة الخدمة النشطة</small>
+            
+            <div class="timer-card">
+                <small style="color: var(--tactical-dark);">مدة الخدمة النشطة</small>
                 <div class="timer-display" id="timer">00:00:00</div>
                 <button class="btn btn-main" id="dutyBtn" onclick="toggleDuty()">تسجيل دخول الخدمة</button>
             </div>
         </div>
 
         <div id="chatSec" class="tab-content" style="display: none; height: 100%;">
-            <div id="groupList" class="group-selector">
+            <div id="groupList">
                 <div class="group-btn" onclick="openChat('المجموعة المشتركة')">
                     <img src="logo.png" class="group-logo">
-                    <div class="group-btn-text">المجموعة المشتركة</div>
+                    <span class="group-btn-text">المجموعة المشتركة</span>
                 </div>
             </div>
             <div id="activeChat" class="chat-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 id="currentGroupName" style="margin: 0; font-size: 1rem;"></h3>
-                    <button onclick="backToGroups()" style="background: none; border: 1px solid var(--tactical-dark); color: white;">رجوع</button>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <h3 id="currentGroupName" style="margin:0;"></h3>
+                    <button onclick="backToGroups()" class="btn btn-outline">رجوع</button>
                 </div>
                 <div id="chatBox" class="chat-box"></div>
                 <div style="display: flex; gap: 5px; margin-top: 10px;">
                     <input type="text" id="msgInput" placeholder="رسالة تكتيكية...">
-                    <button onclick="sendMsg()" style="background: var(--tactical-dark); border: none; width: 50px;"><i class="fas fa-paper-plane"></i></button>
+                    <button onclick="sendMsg()" class="btn-main" style="width:50px; border-radius:5px;"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
 
         <div id="settingsSec" class="tab-content" style="display: none; text-align: center;">
-            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--tactical-dark); object-fit: cover; margin-bottom: 15px;">
             <br>
-            <button class="btn" style="background: #333; color: white; width: auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة</button>
+            <button class="btn btn-outline" style="margin: 0 auto 20px auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة الشخصية</button>
             <input type="file" id="imgInp" style="display: none;" onchange="updatePhoto(this)">
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin: 10px 0;">
-                <p id="fixedName" style="font-weight: bold;"></p>
-                <p id="fixedRank"></p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <p id="fixedName" style="margin: 5px 0; font-size: 1.1rem; font-weight: bold;"></p>
+                <p id="fixedRank" style="margin: 5px 0; color: var(--tactical-light);"></p>
             </div>
             <input type="password" id="uPass" placeholder="كلمة المرور الجديدة">
             <button class="btn btn-main" onclick="saveSettings()">حفظ التعديلات</button>
-            <button class="btn btn-danger" style="margin-top: 10px;" onclick="logout()">تسجيل الخروج</button>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+            <button class="btn btn-danger" onclick="logout()"><i class="fas fa-power-off"></i> تسجيل الخروج من الحساب</button>
         </div>
     </div>
 
@@ -157,11 +153,8 @@
         "1565": { rank: "نقيب", name: "طلال حسن عبدالله شهيل" },
         "1587": { rank: "نقيب", name: "محمد علي صقر يوسف الدرمكي" },
         "1739": { rank: "ملازم أول", name: "سالم راشد سالم عبيد الخيال" },
-        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" }
-    };
-
-    // إضافة باقي البيانات
-    Object.assign(personnelDB, {
+        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" },
+        "1825": { rank: "ملازم", name: "محمد سعيد محمد النقبي" },
         "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله درويش ال علي" },
         "100270": { rank: "مساعد ضابط", name: "حسن علي محمد علي سعيد النقبي" },
         "100342": { rank: "مساعد ضابط", name: "خالد حسين عبدالله صالح الحوسني" },
@@ -224,29 +217,20 @@
         "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
         "105364": { rank: "شرطي أول", name: "فهد سعيد كشيش الشحي" },
         "105869": { rank: "شرطي أول", name: "حسن علي درويش محمد الرئيسي" }
-    });
+    };
 
     const admins = ["1321", "1408", "1549", "1565", "1587", "1739", "1886"];
-    let duty = false, startTime, currentUser = "", userPhoto = "https://via.placeholder.com/150";
+    let duty = false, startTime, currentUser = "", userPhoto = "";
 
-    // دالة فحص الجلسة عند فتح الموقع
     window.onload = function() {
         let savedUser = localStorage.getItem('session_user');
         if (savedUser) {
             currentUser = savedUser;
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            if(admins.includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
-            loadProfile();
-            
-            // استعادة حالة الخدمة والتايمر
-            let savedDuty = localStorage.getItem(currentUser + '_duty');
-            if (savedDuty === 'true') {
+            showMainApp();
+            if (localStorage.getItem(currentUser + '_duty') === 'true') {
                 duty = true;
                 startTime = parseInt(localStorage.getItem(currentUser + '_startTime'));
-                let btn = document.getElementById('dutyBtn'), lbl = document.getElementById('statusLabel');
-                btn.innerText = "إنهاء الخدمة"; btn.className = "btn btn-danger";
-                lbl.innerText = "في الخدمة (نشط)"; lbl.style.color = "var(--neon)";
+                updateDutyUI(true);
                 startTimer();
             }
         }
@@ -256,31 +240,51 @@
         let id = document.getElementById('milId').value.trim();
         let pass = document.getElementById('pass').value;
         let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
-        
         if(personnelDB[id] && pass === savedPass) {
             currentUser = id;
-            localStorage.setItem('session_user', id); // حفظ الجلسة
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            if(admins.includes(id)) document.getElementById('adminPanel').style.display = 'block';
-            loadProfile();
-        } else { alert("عذراً، البيانات غير صحيحة."); }
+            localStorage.setItem('session_user', id);
+            showMainApp();
+        } else { alert("بيانات الدخول غير صحيحة."); }
+    }
+
+    function logout() {
+        if(confirm("هل تريد تسجيل الخروج؟")) {
+            localStorage.removeItem('session_user');
+            location.reload();
+        }
+    }
+
+    function showMainApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        if(admins.includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
+        loadProfile();
     }
 
     function toggleDuty() {
         duty = !duty;
-        let btn = document.getElementById('dutyBtn'), lbl = document.getElementById('statusLabel');
         if(duty) {
-            btn.innerText = "إنهاء الخدمة"; btn.className = "btn btn-danger";
-            lbl.innerText = "في الخدمة (نشط)"; lbl.style.color = "var(--neon)";
             startTime = Date.now();
             localStorage.setItem(currentUser + '_duty', 'true');
             localStorage.setItem(currentUser + '_startTime', startTime);
+            updateDutyUI(true);
             startTimer();
         } else {
             localStorage.removeItem(currentUser + '_duty');
             localStorage.removeItem(currentUser + '_startTime');
+            updateDutyUI(false);
             location.reload();
+        }
+    }
+
+    function updateDutyUI(active) {
+        let btn = document.getElementById('dutyBtn'), lbl = document.getElementById('statusLabel');
+        if(active) {
+            btn.innerText = "إنهاء الخدمة"; btn.className = "btn btn-danger";
+            lbl.innerText = "في الخدمة (نشط)"; lbl.style.color = "var(--neon)";
+        } else {
+            btn.innerText = "تسجيل دخول الخدمة"; btn.className = "btn btn-main";
+            lbl.innerText = "خارج الخدمة"; lbl.style.color = "var(--danger)";
         }
     }
 
@@ -293,50 +297,29 @@
         }, 1000);
     }
 
-    function logout() {
-        localStorage.removeItem('session_user');
-        location.reload();
+    function loadProfile() {
+        let p = personnelDB[currentUser];
+        userPhoto = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('userDisplay').innerText = p.rank + " / " + p.name;
+        document.getElementById('fixedName').innerText = "الاسم: " + p.name;
+        document.getElementById('fixedRank').innerText = "الرتبة: " + p.rank;
+        document.getElementById('headerImg').src = userPhoto;
+        document.getElementById('profilePrev').src = userPhoto;
     }
 
-    // باقي الدوال المساعدة من كودك الأصلي
     function switchTab(tab, el) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         document.getElementById(tab + 'Sec').style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
     }
-    function loadProfile() {
-        let p = personnelDB[currentUser];
-        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
-        document.getElementById('userDisplay').innerText = p.rank + " / " + p.name;
-        document.getElementById('fixedName').innerText = "الاسم: " + p.name;
-        document.getElementById('fixedRank').innerText = "الرتبة: " + p.rank;
-        document.getElementById('headerImg').src = photo;
-        document.getElementById('profilePrev').src = photo;
-        userPhoto = photo;
-    }
-    function openChat(gn) { document.getElementById('groupList').style.display = 'none'; document.getElementById('activeChat').style.display = 'flex'; document.getElementById('currentGroupName').innerText = gn; }
-    function backToGroups() { document.getElementById('groupList').style.display = 'flex'; document.getElementById('activeChat').style.display = 'none'; }
-    function triggerRaid() { document.getElementById('emergencyOverlay').style.display = 'flex'; document.getElementById('alarmSound').play(); }
-    function stopAlarm() { document.getElementById('emergencyOverlay').style.display = 'none'; document.getElementById('alarmSound').pause(); }
-    function sendMsg() { 
-        let inp = document.getElementById('msgInput'); if(!inp.value) return;
-        let p = personnelDB[currentUser];
-        document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${userPhoto}"><div><small style="color:var(--neon)">${p.rank}</small><br>${inp.value}</div></div>`;
-        inp.value = ""; document.getElementById('chatBox').scrollTop = 9999;
-    }
-    function saveSettings() {
-        localStorage.setItem(currentUser + '_photo', userPhoto);
-        if(document.getElementById('uPass').value) localStorage.setItem(currentUser + '_pass', document.getElementById('uPass').value);
-        loadProfile(); alert("تم الحفظ");
-    }
-    function updatePhoto(input) {
-        if (input.files && input.files[0]) {
-            let reader = new FileReader();
-            reader.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+    function openChat(n) { document.getElementById('groupList').style.display='none'; document.getElementById('activeChat').style.display='flex'; document.getElementById('currentGroupName').innerText=n; }
+    function backToGroups() { document.getElementById('groupList').style.display='flex'; document.getElementById('activeChat').style.display='none'; }
+    function triggerRaid() { document.getElementById('emergencyOverlay').style.display='flex'; document.getElementById('alarmSound').play(); }
+    function stopAlarm() { document.getElementById('emergencyOverlay').style.display='none'; document.getElementById('alarmSound').pause(); }
+    function updatePhoto(input) { if (input.files && input.files[0]) { let r = new FileReader(); r.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; }; r.readAsDataURL(input.files[0]); } }
+    function saveSettings() { localStorage.setItem(currentUser + '_photo', userPhoto); if(document.getElementById('uPass').value) localStorage.setItem(currentUser + '_pass', document.getElementById('uPass').value); loadProfile(); alert("تم الحفظ"); }
+    function sendMsg() { let inp = document.getElementById('msgInput'); if(!inp.value) return; document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${userPhoto}"><div><small style="color:var(--neon)">${personnelDB[currentUser].rank}</small><br>${inp.value}</div></div>`; inp.value = ""; document.getElementById('chatBox').scrollTop = 9999; }
 </script>
 </body>
 </html>
