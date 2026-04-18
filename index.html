@@ -18,15 +18,17 @@
         .call-info p { margin: 2px 0; color: var(--tactical); }
         .timer { font-size: 2.8rem; color: var(--neon); font-family: monospace; margin: 25px 0; }
         
+        #callHeader { display: flex; flex-direction: column; align-items: center; }
         .pulse { width: 70px; height: 70px; background: var(--neon); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; color: #000; animation: pulse-anim 1.5s infinite; margin-bottom: 20px; }
         @keyframes pulse-anim { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.7); } 70% { box-shadow: 0 0 0 25px rgba(0, 255, 65, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); } }
 
-        .call-btns { display: flex; gap: 35px; margin-top: 20px; }
-        .btn-call { width: 75px; height: 75px; border-radius: 50%; border: none; cursor: pointer; font-size: 25px; display: flex; align-items: center; justify-content: center; }
+        .call-btns { display: flex; gap: 25px; margin-top: 20px; align-items: center; }
+        .btn-call { width: 70px; height: 70px; border-radius: 50%; border: none; cursor: pointer; font-size: 25px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .accept { background: var(--neon); color: #000; }
         .reject { background: var(--danger); color: #fff; }
+        .control { background: #333; color: #fff; }
 
-        /* تسجيل الدخول والواجهة - تم التعديل حسب طلبك */
+        /* تسجيل الدخول والواجهة */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
@@ -51,10 +53,11 @@
 <div id="callUI">
     <div id="callHeader">
         <div class="pulse"><i class="fas fa-phone-alt" id="statusIcon"></i></div>
-        <h3 id="callStatusText" style="color: var(--neon);">جاري الاتصال...</h3>
+        <h3 id="callStatusText" style="color: var(--neon); margin-bottom: 20px;">جاري الاتصال...</h3>
     </div>
     
     <img src="" id="peerImg" class="call-img">
+    <video id="remoteVideo" autoplay playsinline class="call-img" style="display: none; background: #111;"></video>
     
     <div class="call-info">
         <h2 id="peerName">--</h2>
@@ -64,9 +67,15 @@
 
     <div id="activeCallTimer" class="timer" style="display: none;">00:00</div>
 
-    <div class="call-btns">
+    <div class="call-btns" id="callActionBtns">
         <button id="acceptBtn" class="btn-call accept" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
         <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+    </div>
+
+    <div class="call-btns" id="activeCallBtns" style="display: none;">
+        <button id="muteBtn" class="btn-call control" onclick="toggleMute()"><i class="fas fa-microphone"></i></button>
+        <button class="btn-call reject" onclick="endCall()" style="width: 85px; height: 85px; font-size: 30px;"><i class="fas fa-phone-slash"></i></button>
+        <button id="videoBtn" class="btn-call control" onclick="toggleVideo()"><i class="fas fa-video-slash"></i></button>
     </div>
 </div>
 
@@ -215,9 +224,13 @@
     };
 
     let currentUser = "";
+    let currentCallRefId = "";
     let peerConnection;
     let localStream;
     let callTimer;
+    let isMuted = false;
+    let isVideoOn = false;
+
     const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
     function login() {
@@ -245,18 +258,61 @@
         listenForCalls();
     }
 
-    // --- نظام الاتصال (WebRTC) ---
+    // --- جلب الميديا (الصوت والفيديو مخفي افتراضياً) ---
+    async function getMediaStream() {
+        try {
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            stream.getVideoTracks().forEach(t => t.enabled = false); // إيقاف الكاميرا افتراضياً
+            return stream;
+        } catch(e) {
+            return await navigator.mediaDevices.getUserMedia({ audio: true }); // إذا مافي كاميرا يكتفي بالمايك
+        }
+    }
+
+    // --- أزرار التحكم النشطة (ميوت وفيديو) ---
+    function toggleMute() {
+        if(localStream && localStream.getAudioTracks().length > 0) {
+            isMuted = !isMuted;
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+            let btn = document.getElementById('muteBtn');
+            btn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            btn.style.background = isMuted ? 'var(--danger)' : '#333';
+        }
+    }
+
+    function toggleVideo() {
+        if(localStream && localStream.getVideoTracks().length > 0) {
+            isVideoOn = !isVideoOn;
+            localStream.getVideoTracks()[0].enabled = isVideoOn;
+            let btn = document.getElementById('videoBtn');
+            btn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            btn.style.background = isVideoOn ? 'var(--neon)' : '#333';
+            btn.style.color = isVideoOn ? '#000' : '#fff';
+            
+            // إبلاغ الطرف الآخر بتشغيل/إيقاف الكاميرا
+            if(currentCallRefId) {
+                let field = (currentUser === currentCallRefId) ? 'receiverVideo' : 'callerVideo';
+                db.ref('calls/' + currentCallRefId + '/' + field).set(isVideoOn);
+            }
+        } else {
+            alert("الكاميرا غير متوفرة أو لم تمنح الصلاحية");
+        }
+    }
+
+    // --- نظام الاتصال ---
     async function startCall() {
         let tid = document.getElementById('targetId').value.trim();
         if(!personnelDB[tid] || tid === currentUser) return alert("الرقم خطأ أو غير صالح");
 
+        currentCallRefId = tid;
         setupCallUI(tid, 'calling');
 
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStream = await getMediaStream();
         peerConnection = new RTCPeerConnection(servers);
 
         peerConnection.ontrack = e => {
-            document.getElementById('remoteAudio').srcObject = e.streams[0];
+            if(e.track.kind === 'audio') document.getElementById('remoteAudio').srcObject = e.streams[0];
+            if(e.track.kind === 'video') document.getElementById('remoteVideo').srcObject = e.streams[0];
         };
 
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -271,14 +327,28 @@
         db.ref('calls/' + tid).set({
             offer: { type: offer.type, sdp: offer.sdp },
             callerId: currentUser,
-            status: 'ringing'
+            status: 'ringing',
+            callerVideo: false,
+            receiverVideo: false
         });
 
+        // الاستماع لرد المستلم
         db.ref(`calls/${tid}`).on('value', async snap => {
             const data = snap.val();
-            if(data && data.status === 'accepted' && data.answer && !peerConnection.currentRemoteDescription) {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                startActiveCallUI();
+            if(data && data.status === 'accepted') {
+                if(data.answer && !peerConnection.currentRemoteDescription) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    startActiveCallUI();
+                }
+                
+                // تحديث الكاميرا للطرف الآخر
+                if(data.receiverVideo) {
+                    document.getElementById('peerImg').style.display = 'none';
+                    document.getElementById('remoteVideo').style.display = 'block';
+                } else {
+                    document.getElementById('peerImg').style.display = 'block';
+                    document.getElementById('remoteVideo').style.display = 'none';
+                }
             }
         });
 
@@ -291,9 +361,21 @@
         db.ref('calls/' + currentUser).on('value', async snap => {
             const data = snap.val();
             if(data && data.status === 'ringing') {
+                currentCallRefId = currentUser;
                 setupCallUI(data.callerId, 'incoming');
                 document.getElementById('ringtone').play();
-            } else if (!data) { hideCallUI(); }
+            } 
+            else if (data && data.status === 'accepted') {
+                // تحديث الكاميرا للطرف الآخر (المتصل)
+                if(data.callerVideo) {
+                    document.getElementById('peerImg').style.display = 'none';
+                    document.getElementById('remoteVideo').style.display = 'block';
+                } else {
+                    document.getElementById('peerImg').style.display = 'block';
+                    document.getElementById('remoteVideo').style.display = 'none';
+                }
+            }
+            else if (!data) { hideCallUI(); }
         });
     }
 
@@ -302,11 +384,12 @@
         const snap = await db.ref('calls/' + currentUser).get();
         const data = snap.val();
 
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStream = await getMediaStream();
         peerConnection = new RTCPeerConnection(servers);
         
         peerConnection.ontrack = e => {
-            document.getElementById('remoteAudio').srcObject = e.streams[0];
+            if(e.track.kind === 'audio') document.getElementById('remoteAudio').srcObject = e.streams[0];
+            if(e.track.kind === 'video') document.getElementById('remoteVideo').srcObject = e.streams[0];
         };
 
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -339,17 +422,20 @@
         document.getElementById('peerMilId').innerText = "الرقم العسكري: " + id;
         
         if(type === 'incoming') {
+            document.getElementById('callActionBtns').style.display = 'flex';
             document.getElementById('acceptBtn').style.display = 'flex';
             document.getElementById('callStatusText').innerText = "بلاغ اتصال وارد...";
         } else {
+            document.getElementById('callActionBtns').style.display = 'flex';
             document.getElementById('acceptBtn').style.display = 'none';
             document.getElementById('callStatusText').innerText = "جاري تأمين الخط...";
         }
     }
 
     function startActiveCallUI() {
-        document.getElementById('callStatusText').innerText = "خط اتصال آمن";
-        document.getElementById('acceptBtn').style.display = 'none';
+        document.getElementById('callHeader').style.display = 'none'; // إخفاء الأيقونة والنص
+        document.getElementById('callActionBtns').style.display = 'none'; // إخفاء زر الرد العادي
+        document.getElementById('activeCallBtns').style.display = 'flex'; // إظهار أزرار المايك والكاميرا والإغلاق
         document.getElementById('activeCallTimer').style.display = 'block';
         
         let sec = 0;
@@ -362,17 +448,31 @@
     }
 
     function endCall() {
-        db.ref('calls/' + currentUser).remove();
-        let tid = document.getElementById('targetId').value.trim();
-        if(tid) db.ref('calls/' + tid).remove();
+        if(currentCallRefId) db.ref('calls/' + currentCallRefId).remove();
         hideCallUI();
     }
 
     function hideCallUI() {
         if(localStream) localStream.getTracks().forEach(t => t.stop());
         if(peerConnection) peerConnection.close();
+        currentCallRefId = "";
+        
+        // إعادة ضبط الأزرار والواجهة
+        isMuted = false;
+        isVideoOn = false;
+        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+        document.getElementById('muteBtn').style.background = '#333';
+        document.getElementById('videoBtn').innerHTML = '<i class="fas fa-video-slash"></i>';
+        document.getElementById('videoBtn').style.background = '#333';
+        document.getElementById('videoBtn').style.color = '#fff';
+        
         document.getElementById('callUI').style.display = 'none';
+        document.getElementById('callHeader').style.display = 'flex';
         document.getElementById('activeCallTimer').style.display = 'none';
+        document.getElementById('activeCallBtns').style.display = 'none';
+        document.getElementById('peerImg').style.display = 'block';
+        document.getElementById('remoteVideo').style.display = 'none';
+        
         document.getElementById('ringtone').pause();
         clearInterval(callTimer);
     }
