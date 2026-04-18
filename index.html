@@ -37,10 +37,6 @@
         .nav-item { color: #555; font-size: 22px; cursor: pointer; }
         .nav-item.active { color: var(--neon); }
         .tab-content { padding: 15px; flex: 1; overflow-y: auto; }
-        
-        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical); margin-bottom: 10px; height: calc(100vh - 280px); }
-        .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); }
-        .msg img { width: 35px; height: 35px; border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -75,14 +71,14 @@
         <img src="logo.png" style="width:90px; margin-bottom:10px;">
         <h2 style="color: var(--neon);">العمليات الخاصة</h2>
         <input type="number" id="milId" placeholder="الرقم العسكري">
-        <button class="btn-main" onclick="login()">دخول</button>
+        <button class="btn-main" onclick="login()">دخول النظام</button>
     </div>
 </div>
 
 <div id="mainApp">
     <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
         <div id="userDisplay" style="font-size: 13px; font-weight: bold;">--</div>
-        <button onclick="logout()" style="background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 10px; padding: 2px 8px; border-radius: 4px;">خروج</button>
+        <button onclick="logout()" style="background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 10px; padding: 2px 8px;">خروج</button>
     </div>
 
     <div id="homeSec" class="tab-content">
@@ -99,28 +95,10 @@
             <button class="btn-main" style="background: var(--neon);" onclick="startCall()">اطلب الآن</button>
         </div>
     </div>
-    
-    <div id="chatSec" class="tab-content" style="display: none;">
-        <div id="groupList">
-            <button class="btn-main" style="margin-bottom: 10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
-        </div>
-        <div id="activeChat" style="display: none; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <strong id="currentGroupName">--</strong>
-                <button onclick="backToGroups()" style="background:none; border: 1px solid #444; color: #fff; padding: 2px 10px; border-radius: 4px;">رجوع</button>
-            </div>
-            <div id="chatBox" class="chat-box"></div>
-            <div style="display: flex; gap: 5px;">
-                <input type="text" id="msgInput" placeholder="بلاغ..." style="flex: 1; margin: 0;">
-                <button onclick="sendMsg()" style="background: none; border: none; color: var(--neon); font-size: 20px;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
 
     <nav class="nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i></div>
         <div class="nav-item" onclick="switchTab('call', this)"><i class="fas fa-phone-volume"></i></div>
-        <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-comment-dots"></i></div>
     </nav>
 </div>
 
@@ -235,12 +213,19 @@
     // --- نظام الاتصال (WebRTC) ---
     async function startCall() {
         let tid = document.getElementById('targetId').value;
-        if(!personnelDB[tid] || tid === currentUser) return alert("الرقم خطأ أو غير صالح");
+        if(!personnelDB[tid] || tid === currentUser) return alert("الرقم خطأ");
 
         setupCallUI(tid, 'calling');
 
+        // طلب الميكروفون للمتصل
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         peerConnection = new RTCPeerConnection(servers);
+
+        // !! تم حل المشكلة هنا: المتصل يستقبل صوت الطرف الثاني عبر ontrack !!
+        peerConnection.ontrack = e => {
+            document.getElementById('remoteAudio').srcObject = e.streams[0];
+        };
+
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
         peerConnection.onicecandidate = e => {
@@ -256,6 +241,7 @@
             status: 'ringing'
         });
 
+        // مراقبة الرد والـ Answer من الطرف الثاني
         db.ref(`calls/${tid}`).on('value', async snap => {
             const data = snap.val();
             if(data && data.status === 'accepted' && data.answer && !peerConnection.currentRemoteDescription) {
@@ -284,13 +270,16 @@
         const snap = await db.ref('calls/' + currentUser).get();
         const data = snap.val();
 
+        // المستلم يفتح الميكروفون
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         peerConnection = new RTCPeerConnection(servers);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
+        
+        // المستلم يستقبل صوت المتصل
         peerConnection.ontrack = e => {
             document.getElementById('remoteAudio').srcObject = e.streams[0];
         };
+
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
         peerConnection.onicecandidate = e => {
             if(e.candidate) db.ref(`calls/${currentUser}/receiverCandidates`).push(e.candidate.toJSON());
@@ -358,37 +347,14 @@
         clearInterval(callTimer);
     }
 
-    // --- الشات ---
-    function openChat(n) {
-        document.getElementById('groupList').style.display = 'none';
-        document.getElementById('activeChat').style.display = 'flex';
-        document.getElementById('currentGroupName').innerText = n;
-        db.ref('chats/' + n).on('value', snap => {
-            const box = document.getElementById('chatBox'); box.innerHTML = "";
-            snap.forEach(c => {
-                const m = c.val();
-                box.innerHTML += `<div class="msg"><img src="${m.photo || 'https://via.placeholder.com/150'}"><div><div style="color:var(--neon); font-size:10px;">${m.rank} / ${m.name}</div><div>${m.text}</div></div></div>`;
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    function sendMsg() {
-        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
-        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
-            name: personnelDB[currentUser].name, rank: personnelDB[currentUser].rank,
-            text: inp.value, photo: localStorage.getItem(currentUser + '_photo') || ""
-        });
-        inp.value = "";
-    }
-
-    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
+    // التنقل والواجهة
     function switchTab(t, el) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         document.getElementById(t + 'Sec').style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
     }
+    
     function logout() { localStorage.removeItem('session_user'); location.reload(); }
     
     window.onload = function() {
