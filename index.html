@@ -26,7 +26,6 @@
         .header { background: var(--panel); padding: 10px 20px; border-bottom: 2px solid var(--tactical-dark); display: flex; justify-content: space-between; align-items: center; }
 
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
-        
         .chat-container { display: none; flex-direction: column; height: 100%; }
         .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
         
@@ -34,15 +33,13 @@
         .msg-sender-img { width: 45px; height: 45px; border-radius: 50%; border: 1px solid var(--tactical-light); object-fit: cover; }
         .msg-name { color: var(--neon); font-weight: bold; font-size: 13px; }
         .msg-info { font-size: 11px; color: var(--tactical-light); }
-        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 8px; }
-        .file-link { background: #222; padding: 8px; border-radius: 5px; display: inline-block; text-decoration: none; color: var(--neon); margin-top: 5px; font-size: 12px; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #444; }
 
-        .input-area { display: flex; gap: 8px; background: var(--panel); padding: 10px; border-top: 1px solid #333; }
-        .attach-btn { background: #222; border: 1px solid var(--tactical-dark); color: white; width: 45px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .input-area { display: flex; gap: 8px; background: var(--panel); padding: 10px; border-top: 1px solid #333; align-items: center; }
+        .attach-btn { background: #222; border: 1px solid var(--tactical-dark); color: white; width: 45px; height: 45px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-main { background: var(--tactical-dark); color: black; }
-        .btn-danger { background: var(--danger); color: white; }
 
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
         .nav-item { color: #555; font-size: 24px; cursor: pointer; }
@@ -69,13 +66,13 @@
             <img src="" id="headerImg" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
             <div id="userDisplay" style="font-weight:bold; font-size:13px;">--</div>
         </div>
-        <button onclick="logout()" style="background:none; border:1px solid #444; color:white; padding:5px; border-radius:5px;">خروج</button>
+        <button onclick="logout()" style="background:none; border:1px solid #444; color:white; padding:5px; border-radius:5px; font-size:10px;">خروج</button>
     </div>
 
     <div class="content">
         <div id="homeSec" class="tab-content">
             <div id="adminPanel" style="display:none; background:#1c2126; padding:15px; border-radius:10px; margin-bottom:20px; border-right:4px solid var(--neon);">
-                <h4 style="margin:0 0 10px 0; color:var(--neon);">إدارة القوات</h4>
+                <h4 style="margin:0 0 10px 0;">الإدارة العسكرية</h4>
                 <select id="targetUser"></select>
                 <select id="targetGroup">
                     <option value="g1">القتالية الأولى</option>
@@ -83,9 +80,9 @@
                     <option value="g3">القتالية الثالثة</option>
                     <option value="g4">قلم القوة</option>
                 </select>
-                <button class="btn btn-main" style="padding:8px; font-size:12px;" onclick="manageMember('add')">منح صلاحية</button>
+                <button class="btn btn-main" style="padding:8px; font-size:12px;" onclick="manageMember('add')">منح الصلاحية</button>
                 <hr style="border:0; border-top:1px solid #444; margin:10px 0;">
-                <button class="btn btn-danger" onclick="triggerRaid()">نداء مداهمة</button>
+                <button class="btn" style="background:var(--danger); color:white;" onclick="triggerRaid()">نداء مداهمة</button>
             </div>
             <div style="text-align:center;">
                 <div id="timer" style="font-size:2.5rem; color:var(--neon); margin-bottom:10px;">00:00:00</div>
@@ -109,18 +106,18 @@
                 </div>
                 <div id="chatBox" class="chat-box"></div>
                 <div class="input-area">
-                    <input type="file" id="fileInp" style="display:none;" onchange="handleFile(this)">
+                    <input type="file" id="fileInp" style="display:none;" onchange="handleFileUpload(this)">
                     <button class="attach-btn" onclick="document.getElementById('fileInp').click()"><i class="fas fa-paperclip"></i></button>
-                    <input type="text" id="msgInput" placeholder="رسالة...">
-                    <button onclick="sendMsg()" class="btn-main" style="width:50px;"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="msgInput" placeholder="أدخل البلاغ...">
+                    <button onclick="sendMsg()" class="btn-main" style="width:50px; height:45px;"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
 
         <div id="settingsSec" class="tab-content" style="display:none; text-align:center;">
-             <img src="https://via.placeholder.com/150" id="profilePrev" style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
-             <br><br>
-             <button class="btn btn-outline" onclick="document.getElementById('profileInp').click()">تغيير الصورة الشخصية</button>
+             <img src="https://via.placeholder.com/150" id="profilePrev" style="width:120px; height:120px; border-radius:50%; object-fit:cover; margin-bottom:10px;">
+             <br>
+             <button class="btn btn-outline" style="margin:0 auto;" onclick="document.getElementById('profileInp').click()">تغيير الصورة الشخصية</button>
              <input type="file" id="profileInp" style="display:none;" onchange="updateProfilePhoto(this)">
         </div>
     </div>
@@ -132,7 +129,23 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
 <script>
+    // إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWP-8J8GoZDl-0u22ArnZ1F4QdrY6_EbY",
+        authDomain: "al-amaliat-system.firebaseapp.com",
+        projectId: "al-amaliat-system",
+        storageBucket: "al-amaliat-system.firebasestorage.app",
+        messagingSenderId: "970481180924",
+        appId: "1:970481180924:web:4966d13c0ec48b8a3db779"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const personnelDB = {
         "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
         "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
@@ -207,51 +220,127 @@
     };
 
     let currentUser = "";
+    let currentGroup = "المجموعة المشتركة";
 
     window.onload = function() {
         let saved = localStorage.getItem('session_user');
-        if (saved) { currentUser = saved; showMainApp(); checkGroups(); }
+        if (saved && personnelDB[saved]) {
+            currentUser = saved;
+            showMainApp();
+            checkGroups();
+        }
+        // تعبئة قائمة الإدارة
         const sel = document.getElementById('targetUser');
         Object.keys(personnelDB).sort().forEach(id => {
-            let o = document.createElement('option'); o.value = id; o.innerText = id + " - " + personnelDB[id].name;
+            let o = document.createElement('option');
+            o.value = id;
+            o.innerText = id + " - " + personnelDB[id].name;
             sel.appendChild(o);
         });
     };
 
     function login() {
         let id = document.getElementById('milId').value.trim();
-        if(personnelDB[id]) { currentUser = id; localStorage.setItem('session_user', id); showMainApp(); checkGroups(); }
+        let pass = document.getElementById('pass').value;
+        let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
+        if(personnelDB[id] && pass === savedPass) {
+            currentUser = id;
+            localStorage.setItem('session_user', id);
+            showMainApp();
+            checkGroups();
+        } else { alert("بيانات الدخول غير صحيحة."); }
     }
 
-    function addMsgToChat(htmlContent) {
-        let p = personnelDB[currentUser];
-        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
-        document.getElementById('chatBox').innerHTML += `
-            <div class="msg">
-                <img src="${photo}" class="msg-sender-img">
-                <div>
-                    <div class="msg-name">${p.rank} / ${p.name}</div>
-                    <div class="msg-info">الرقم العسكري: ${currentUser}</div>
-                    <div style="margin-top:5px;">${htmlContent}</div>
-                </div>
-            </div>`;
-        document.getElementById('chatBox').scrollTop = 9999;
+    function showMainApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        if(["1321", "1408", "1549"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
+        updateUIPhotos();
     }
 
-    function handleFile(input) {
+    function openChat(n) {
+        currentGroup = n;
+        document.getElementById('groupList').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        document.getElementById('currentGroupName').innerText = n;
+        listenForMessages();
+    }
+
+    // الاستماع للرسايل لايف من Firebase
+    function listenForMessages() {
+        db.ref('chats/' + currentGroup).on('value', (snapshot) => {
+            const box = document.getElementById('chatBox');
+            box.innerHTML = "";
+            snapshot.forEach((child) => {
+                const m = child.val();
+                box.innerHTML += `
+                    <div class="msg">
+                        <img src="${m.photo || 'https://via.placeholder.com/150'}" class="msg-sender-img">
+                        <div>
+                            <div class="msg-name">${m.rank} / ${m.name}</div>
+                            <div class="msg-info">الرقم العسكري: ${m.id}</div>
+                            <div style="margin-top:5px;">${m.text}</div>
+                        </div>
+                    </div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function sendMsg() {
+        const inp = document.getElementById('msgInput');
+        if(!inp.value.trim()) return;
+        const p = personnelDB[currentUser];
+        db.ref('chats/' + currentGroup).push({
+            id: currentUser,
+            name: p.name,
+            rank: p.rank,
+            text: inp.value,
+            photo: localStorage.getItem(currentUser + '_photo') || "",
+            time: Date.now()
+        });
+        inp.value = "";
+    }
+
+    function handleFileUpload(input) {
         if (input.files && input.files[0]) {
             let file = input.files[0], r = new FileReader();
             r.onload = function(e) {
-                let c = file.type.startsWith('image/') ? `<img src="${e.target.result}" class="chat-img">` : `<a href="${e.target.result}" download="${file.name}" class="file-link">${file.name}</a>`;
-                addMsgToChat(c);
+                let content = file.type.startsWith('image/') 
+                    ? `<img src="${e.target.result}" class="chat-img">` 
+                    : `<a href="${e.target.result}" download="${file.name}" class="file-link"><i class="fas fa-file-download"></i> ${file.name}</a>`;
+                
+                const p = personnelDB[currentUser];
+                db.ref('chats/' + currentGroup).push({
+                    id: currentUser,
+                    name: p.name,
+                    rank: p.rank,
+                    text: content,
+                    photo: localStorage.getItem(currentUser + '_photo') || "",
+                    time: Date.now()
+                });
             };
             r.readAsDataURL(file);
         }
     }
 
-    function sendMsg() {
-        let inp = document.getElementById('msgInput');
-        if(inp.value.trim()) { addMsgToChat(inp.value); inp.value = ""; }
+    function updateProfilePhoto(input) {
+        if (input.files && input.files[0]) {
+            let r = new FileReader();
+            r.onload = e => {
+                localStorage.setItem(currentUser + '_photo', e.target.result);
+                updateUIPhotos();
+                alert("تم تحديث هويتك العسكرية.");
+            };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function updateUIPhotos() {
+        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('headerImg').src = photo;
+        document.getElementById('profilePrev').src = photo;
     }
 
     function checkGroups() {
@@ -267,35 +356,16 @@
         alert("تم تحديث صلاحيات " + t);
     }
 
-    function showMainApp() { 
-        document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainApp').style.display = 'flex';
-        if(["1321", "1408", "1549", "1565", "1587"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
-        document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
-        document.getElementById('headerImg').src = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
-        document.getElementById('profilePrev').src = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
-    }
-
-    function updateProfilePhoto(input) {
-        if (input.files && input.files[0]) {
-            let r = new FileReader();
-            r.onload = e => {
-                localStorage.setItem(currentUser + '_photo', e.target.result);
-                document.getElementById('profilePrev').src = e.target.result;
-                document.getElementById('headerImg').src = e.target.result;
-            };
-            r.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function openChat(n) { document.getElementById('groupList').style.display = 'none'; document.getElementById('activeChat').style.display = 'flex'; document.getElementById('currentGroupName').innerText = n; }
     function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
-    function switchTab(t, el) { 
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
+    function switchTab(t, el) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(t + 'Sec').style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
     }
     function logout() { localStorage.removeItem('session_user'); location.reload(); }
-    function toggleDuty() { alert("تم تسجيل الدخول للخدمة"); }
-    function triggerRaid() { alert("تم إرسال نداء مداهمة!"); }
+    function toggleDuty() { alert("تم تفعيل حالة الاستعداد."); }
+    function triggerRaid() { alert("تم إرسال بلاغ المداهمة عبر الشبكة!"); }
 </script>
 </body>
 </html>
