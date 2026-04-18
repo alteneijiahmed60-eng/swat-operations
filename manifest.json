@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "rtl",
+  "display": "standalone",
+  "name": "العمليات الخاصة",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "العمليات",
+  "start_url": "/.",
+  "theme_color": "#ffffff",
+  "lang": "ar"
+}
