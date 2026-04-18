@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>منظومة العمليات الخاصة</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="العمليات">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" href="logo.png" type="image/png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { 
@@ -108,7 +115,7 @@
                     <img src="logo.png" class="group-logo">
                     <div class="group-btn-text">المجموعة المشتركة</div>
                 </div>
-                </div>
+            </div>
 
             <div id="activeChat" class="chat-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -148,7 +155,6 @@
 </div>
 
 <script>
-    // قاعدة البيانات التي أرفقتها
     const personnelDB = {
         "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
         "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
@@ -156,12 +162,9 @@
         "1565": { rank: "نقيب", name: "طلال حسن عبدالله شهيل" },
         "1587": { rank: "نقيب", name: "محمد علي صقر يوسف الدرمكي" },
         "1739": { rank: "ملازم أول", name: "سالم راشد سالم عبيد الخيال" },
-        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" },
-        "1825": { rank: "ملازم", name: "محمد سعيد محمد النقبي" },
-        // ... (باقي الأسماء مدمجة تلقائياً)
+        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" }
     };
 
-    // إضافة باقي البيانات عشان ما ينقص شيء
     Object.assign(personnelDB, {
         "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله درويش ال علي" },
         "100270": { rank: "مساعد ضابط", name: "حسن علي محمد علي سعيد النقبي" },
@@ -233,7 +236,6 @@
     function login() {
         let id = document.getElementById('milId').value.trim();
         let pass = document.getElementById('pass').value;
-        // الباسورد الافتراضي SHJ@123 إلا إذا غيره المستخدم سابقاً
         let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
         
         if(personnelDB[id] && pass === savedPass) {
