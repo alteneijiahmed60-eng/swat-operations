@@ -32,23 +32,29 @@
 
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
         
-        .timer-card { background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; margin-top: 10px; }
-        .timer-display { font-size: 2.5rem; font-weight: bold; margin: 15px 0; color: var(--neon); text-shadow: 0 0 10px rgba(0,255,65,0.3); }
+        .group-selector { display: flex; flex-direction: column; gap: 12px; }
+        .group-btn { 
+            background: #1c2126; border: 1px solid var(--tactical-dark); color: var(--tactical-light); 
+            padding: 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+        }
+        .group-icon-frame { width: 40px; height: 40px; background: var(--panel); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+
+        .chat-container { display: none; flex-direction: column; height: 100%; }
+        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
+        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; max-width: 85%; }
+        .msg img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
 
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
         .nav-item { color: #555; font-size: 24px; cursor: pointer; }
         .nav-item.active { color: var(--tactical-light); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; transition: 0.2s; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-main { background: var(--tactical-dark); color: black; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--tactical-dark); color: white; padding: 5px 10px; font-size: 11px; width: auto; }
 
         #emergencyOverlay { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.95); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .chat-container { display: none; flex-direction: column; height: 100%; }
-        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
-        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .msg img { width: 35px; height: 35px; border-radius: 50%; }
+        .timer-display { font-size: 2.5rem; font-weight: bold; margin: 15px 0; color: var(--neon); }
     </style>
 </head>
 <body>
@@ -94,7 +100,7 @@
                 <button class="btn btn-danger" onclick="triggerRaid()">إطلاق نداء مداهمة</button>
             </div>
             
-            <div class="timer-card">
+            <div class="timer-card" style="background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333;">
                 <small style="color: var(--tactical-dark);">مدة الخدمة النشطة</small>
                 <div class="timer-display" id="timer">00:00:00</div>
                 <button class="btn btn-main" id="dutyBtn" onclick="toggleDuty()">تسجيل دخول الخدمة</button>
@@ -102,15 +108,24 @@
         </div>
 
         <div id="chatSec" class="tab-content" style="display: none; height: 100%;">
-            <div id="groupList">
-                <div class="group-btn" onclick="openChat('المجموعة المشتركة')">
-                    <img src="logo.png" class="group-logo">
-                    <span class="group-btn-text">المجموعة المشتركة</span>
+            <div id="groupList" class="group-selector">
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الأولى', 'fas fa-shield-alt')">
+                    <div class="group-icon-frame"><i class="fas fa-shield-alt"></i></div>
+                    <div class="group-btn-text">المجموعة القتالية الأولى</div>
+                </div>
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الثانية', 'fas fa-piston')">
+                    <div class="group-icon-frame"><i class="fas fa-bolt"></i></div>
+                    <div class="group-btn-text">المجموعة القتالية الثانية</div>
+                </div>
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الثالثة', 'fas fa-crosshairs')">
+                    <div class="group-icon-frame"><i class="fas fa-crosshairs"></i></div>
+                    <div class="group-btn-text">المجموعة القتالية الثالثة</div>
                 </div>
             </div>
+
             <div id="activeChat" class="chat-container">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <h3 id="currentGroupName" style="margin:0;"></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 id="currentGroupName" style="margin:0; font-size: 1rem;"></h3>
                     <button onclick="backToGroups()" class="btn btn-outline">رجوع</button>
                 </div>
                 <div id="chatBox" class="chat-box"></div>
@@ -122,19 +137,16 @@
         </div>
 
         <div id="settingsSec" class="tab-content" style="display: none; text-align: center;">
-            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--tactical-dark); object-fit: cover; margin-bottom: 15px;">
+            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--tactical-dark); object-fit: cover;">
             <br>
-            <button class="btn btn-outline" style="margin: 0 auto 20px auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة الشخصية</button>
+            <button class="btn btn-outline" style="margin: 15px auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة</button>
             <input type="file" id="imgInp" style="display: none;" onchange="updatePhoto(this)">
             
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <p id="fixedName" style="margin: 5px 0; font-size: 1.1rem; font-weight: bold;"></p>
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin: 15px 0;">
+                <p id="fixedName" style="margin: 5px 0; font-weight: bold;"></p>
                 <p id="fixedRank" style="margin: 5px 0; color: var(--tactical-light);"></p>
             </div>
-            <input type="password" id="uPass" placeholder="كلمة المرور الجديدة">
-            <button class="btn btn-main" onclick="saveSettings()">حفظ التعديلات</button>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
-            <button class="btn btn-danger" onclick="logout()"><i class="fas fa-power-off"></i> تسجيل الخروج من الحساب</button>
+            <button class="btn btn-danger" onclick="logout()"><i class="fas fa-power-off"></i> تسجيل الخروج</button>
         </div>
     </div>
 
@@ -224,14 +236,11 @@
 
     window.onload = function() {
         let savedUser = localStorage.getItem('session_user');
-        if (savedUser) {
-            currentUser = savedUser;
-            showMainApp();
+        if (savedUser && personnelDB[savedUser]) {
+            currentUser = savedUser; showMainApp();
             if (localStorage.getItem(currentUser + '_duty') === 'true') {
-                duty = true;
-                startTime = parseInt(localStorage.getItem(currentUser + '_startTime'));
-                updateDutyUI(true);
-                startTimer();
+                duty = true; startTime = parseInt(localStorage.getItem(currentUser + '_startTime'));
+                updateDutyUI(true); startTimer();
             }
         }
     };
@@ -241,17 +250,12 @@
         let pass = document.getElementById('pass').value;
         let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
         if(personnelDB[id] && pass === savedPass) {
-            currentUser = id;
-            localStorage.setItem('session_user', id);
-            showMainApp();
+            currentUser = id; localStorage.setItem('session_user', id); showMainApp();
         } else { alert("بيانات الدخول غير صحيحة."); }
     }
 
     function logout() {
-        if(confirm("هل تريد تسجيل الخروج؟")) {
-            localStorage.removeItem('session_user');
-            location.reload();
-        }
+        if(confirm("هل تريد تسجيل الخروج؟")) { localStorage.removeItem('session_user'); location.reload(); }
     }
 
     function showMainApp() {
@@ -264,16 +268,12 @@
     function toggleDuty() {
         duty = !duty;
         if(duty) {
-            startTime = Date.now();
-            localStorage.setItem(currentUser + '_duty', 'true');
+            startTime = Date.now(); localStorage.setItem(currentUser + '_duty', 'true');
             localStorage.setItem(currentUser + '_startTime', startTime);
-            updateDutyUI(true);
-            startTimer();
+            updateDutyUI(true); startTimer();
         } else {
-            localStorage.removeItem(currentUser + '_duty');
-            localStorage.removeItem(currentUser + '_startTime');
-            updateDutyUI(false);
-            location.reload();
+            localStorage.removeItem(currentUser + '_duty'); localStorage.removeItem(currentUser + '_startTime');
+            updateDutyUI(false); location.reload();
         }
     }
 
@@ -307,19 +307,54 @@
         document.getElementById('profilePrev').src = userPhoto;
     }
 
+    function openChat(name, icon) {
+        document.getElementById('groupList').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        document.getElementById('currentGroupName').innerText = name;
+        document.getElementById('chatBox').innerHTML = `<div style="text-align:center; color:gray; font-size:10px;">نظام تواصل آمن - ${name}</div>`;
+    }
+
+    function backToGroups() {
+        document.getElementById('groupList').style.display = 'flex';
+        document.getElementById('activeChat').style.display = 'none';
+    }
+
     function switchTab(tab, el) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         document.getElementById(tab + 'Sec').style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
     }
-    function openChat(n) { document.getElementById('groupList').style.display='none'; document.getElementById('activeChat').style.display='flex'; document.getElementById('currentGroupName').innerText=n; }
-    function backToGroups() { document.getElementById('groupList').style.display='flex'; document.getElementById('activeChat').style.display='none'; }
-    function triggerRaid() { document.getElementById('emergencyOverlay').style.display='flex'; document.getElementById('alarmSound').play(); }
-    function stopAlarm() { document.getElementById('emergencyOverlay').style.display='none'; document.getElementById('alarmSound').pause(); }
-    function updatePhoto(input) { if (input.files && input.files[0]) { let r = new FileReader(); r.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; }; r.readAsDataURL(input.files[0]); } }
-    function saveSettings() { localStorage.setItem(currentUser + '_photo', userPhoto); if(document.getElementById('uPass').value) localStorage.setItem(currentUser + '_pass', document.getElementById('uPass').value); loadProfile(); alert("تم الحفظ"); }
-    function sendMsg() { let inp = document.getElementById('msgInput'); if(!inp.value) return; document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${userPhoto}"><div><small style="color:var(--neon)">${personnelDB[currentUser].rank}</small><br>${inp.value}</div></div>`; inp.value = ""; document.getElementById('chatBox').scrollTop = 9999; }
+
+    function updatePhoto(input) {
+        if (input.files && input.files[0]) {
+            let r = new FileReader();
+            r.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function saveSettings() {
+        localStorage.setItem(currentUser + '_photo', userPhoto);
+        alert("تم الحفظ"); loadProfile();
+    }
+
+    function triggerRaid() {
+        document.getElementById('emergencyOverlay').style.display = 'flex';
+        document.getElementById('emergencyMsg').innerText = document.getElementById('raidMsg').value || "نداء مداهمة فوري!";
+        document.getElementById('alarmSound').play();
+    }
+
+    function stopAlarm() {
+        document.getElementById('emergencyOverlay').style.display = 'none';
+        document.getElementById('alarmSound').pause();
+    }
+
+    function sendMsg() {
+        let inp = document.getElementById('msgInput'); if(!inp.value) return;
+        document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${userPhoto}"><div><small style="color:var(--neon)">${personnelDB[currentUser].rank}</small><br>${inp.value}</div></div>`;
+        inp.value = ""; document.getElementById('chatBox').scrollTop = 9999;
+    }
 </script>
 </body>
 </html>
