@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منظومة العمليات الخاصة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg: #0b0e11; --panel: #15191c; 
+            --tactical-dark: #968c83; --tactical-light: #b9b3ad; 
+            --neon: #00ff41; --danger: #ff0000; 
+        }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        
+        /* شاشة تسجيل الدخول */
+        #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-box { background: var(--panel); padding: 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid var(--tactical-dark); }
+        .swat-header img { width: 90px; margin-bottom: 5px; }
+        .special-ops-text { color: white; font-size: 1.3rem; font-weight: bold; margin: 0 0 20px 0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid var(--tactical-dark); color: var(--tactical-light); border-radius: 5px; box-sizing: border-box; text-align: center; }
+
+        /* الواجهة الرئيسية */
+        #mainApp { display: none; height: 100vh; flex-direction: column; }
+        .header { background: var(--panel); padding: 10px 20px; border-bottom: 2px solid var(--tactical-dark); display: flex; justify-content: space-between; align-items: center; }
+        .profile-img-header { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--tactical-dark); object-fit: cover; }
+
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        
+        /* تنسيق المجموعات الجديد */
+        .group-selector { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        .group-btn { 
+            background: #1c2126; border: 1px solid var(--tactical-dark); color: var(--tactical-light); 
+            padding: 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            transition: 0.3s;
+        }
+        /* تنسيق اللوجو الخاص بالمجموعة */
+        .group-logo { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .group-btn-text { font-size: 1.1rem; font-weight: bold; }
+        
+        .group-btn.active { background: var(--tactical-dark); color: black; border-color: white; }
+
+        .chat-container { display: none; flex-direction: column; height: 60vh; }
+        .chat-box { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid var(--tactical-dark); }
+        .msg { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; max-width: 85%; }
+        .msg img { width: 30px; height: 30px; border-radius: 50%; }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--tactical-dark); }
+        .nav-item { color: #555; font-size: 24px; cursor: pointer; }
+        .nav-item.active { color: var(--tactical-light); }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; }
+        .btn-main { background: var(--tactical-dark); color: black; }
+        .btn-danger { background: var(--danger); color: white; }
+
+        #emergencyOverlay { display: none; position: fixed; inset: 0; background: rgba(255,0,0,0.95); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    </style>
+</head>
+<body>
+
+<audio id="alarmSound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" loop></audio>
+
+<div id="emergencyOverlay">
+    <i class="fas fa-radiation-alt fa-spin" style="font-size: 80px; margin-bottom: 20px;"></i>
+    <h1 style="font-size: 2.5rem;">نداء مداهمة!</h1>
+    <p id="emergencyMsg" style="background: black; padding: 15px; border-radius: 10px; width: 80%;"></p>
+    <button class="btn btn-main" onclick="stopAlarm()" style="width: auto; padding: 15px 50px; margin-top: 20px;">تم الاستلام</button>
+</div>
+
+<div id="loginPage">
+    <div class="login-box">
+        <div class="swat-header">
+            <img src="logo.png" alt="Logo">
+            <h1 class="special-ops-text">العمليات الخاصة</h1>
+        </div>
+        <input type="text" id="milId" placeholder="الرقم العسكري">
+        <input type="password" id="pass" placeholder="كلمة المرور">
+        <button class="btn btn-main" onclick="login()">دخول النظام</button>
+    </div>
+</div>
+
+<div id="mainApp">
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="https://via.placeholder.com/150" id="headerImg" class="profile-img-header">
+            <div>
+                <div id="userDisplay" style="font-weight: bold; font-size: 13px;">--</div>
+                <div id="statusLabel" style="font-size: 10px; color: var(--danger);">خارج الخدمة</div>
+            </div>
+        </div>
+        <div style="color: var(--tactical-light);">المناوبين: <span id="activeCount">1</span></div>
+    </div>
+
+    <div class="content">
+        <div id="homeSec" class="tab-content">
+            <div id="adminPanel" style="background: var(--tactical-dark); color: black; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; display: none;">
+                <h4>لوحة القيادة والسيطرة</h4>
+                <input type="text" id="raidMsg" placeholder="اكتب تعليمات المداهمة...">
+                <button class="btn btn-danger" onclick="triggerRaid()">إطلاق نداء مداهمة</button>
+            </div>
+            <div class="timer-card" style="background: var(--panel); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333;">
+                <small style="color: var(--tactical-dark);">مدة الخدمة النشطة</small>
+                <div class="timer-display" id="timer">00:00:00</div>
+                <button class="btn btn-main" id="dutyBtn" onclick="toggleDuty()">تسجيل دخول الخدمة</button>
+            </div>
+        </div>
+
+        <div id="chatSec" class="tab-content" style="display: none;">
+            <div id="groupList" class="group-selector">
+                <div class="group-btn" onclick="openChat('المجموعة المشتركة')">
+                    <img src="logo.png" class="group-logo" alt="Logo">
+                    <div class="group-btn-text">المجموعة المشتركة</div>
+                </div>
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الأولى')">
+                    <img src="logo.png" class="group-logo" alt="Logo">
+                    <div class="group-btn-text">المجموعة القتالية الأولى</div>
+                </div>
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الثانية')">
+                    <img src="logo.png" class="group-logo" alt="Logo">
+                    <div class="group-btn-text">المجموعة القتالية الثانية</div>
+                </div>
+                <div class="group-btn" onclick="openChat('المجموعة القتالية الثالثة')">
+                    <img src="logo.png" class="group-logo" alt="Logo">
+                    <div class="group-btn-text">المجموعة القتالية الثالثة</div>
+                </div>
+            </div>
+
+            <div id="activeChat" class="chat-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="logo.png" class="group-logo" style="width: 30px; height: 30px;" alt="Logo">
+                        <h3 id="currentGroupName" style="margin: 0; color: var(--tactical-light);"></h3>
+                    </div>
+                    <button onclick="backToGroups()" style="background: none; border: 1px solid var(--tactical-dark); color: white; border-radius: 5px; cursor: pointer; padding: 5px 10px;">رجوع</button>
+                </div>
+                <div id="chatBox" class="chat-box"></div>
+                <div style="display: flex; gap: 5px; margin-top: 10px;">
+                    <input type="text" id="msgInput" placeholder="رسالة تكتيكية..." style="margin: 0;">
+                    <button onclick="sendMsg()" style="background: var(--tactical-dark); border: none; width: 60px; border-radius: 5px; color: black;"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsSec" class="tab-content" style="display: none; text-align: center;">
+            <img src="https://via.placeholder.com/150" id="profilePrev" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--tactical-dark); object-fit: cover;">
+            <input type="file" id="imgInp" style="display: none;" onchange="updatePhoto(this)">
+            <button class="btn" style="background: #333; color: white; width: auto; margin: 10px auto;" onclick="document.getElementById('imgInp').click()">تغيير الصورة</button>
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <p id="fixedName" style="margin: 5px 0; font-weight: bold;"></p>
+                <p id="fixedRank" style="margin: 5px 0; color: var(--tactical-light);"></p>
+            </div>
+            <input type="password" id="uPass" placeholder="تغيير كلمة المرور">
+            <button class="btn btn-main" onclick="saveSettings()">حفظ التعديلات</button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-house-user"></i></div>
+        <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-tower-broadcast"></i></div>
+        <div class="nav-item" onclick="switchTab('settings', this)"><i class="fas fa-user-shield"></i></div>
+    </div>
+</div>
+
+<script>
+    // قاعدة البيانات الحقيقية
+    const personnelDB = {
+        "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
+        "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
+        "1549": { rank: "نقيب", name: "راشد احمد محمد عبدالرحمن" },
+        "1565": { rank: "نقيب", name: "طلال حسن عبدالله شهيل" },
+        "1587": { rank: "نقيب", name: "محمد علي صقر يوسف الدرمكي" },
+        "1739": { rank: "ملازم أول", name: "سالم راشد سالم عبيد الخيال" },
+        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" },
+        "1825": { rank: "ملازم", name: "محمد سعيد محمد النقبي" },
+        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله درويش ال علي" },
+        "100270": { rank: "مساعد ضابط", name: "حسن علي محمد علي سعيد النقبي" },
+        "100342": { rank: "مساعد ضابط", name: "خالد حسين عبدالله صالح الحوسني" },
+        "100576": { rank: "مساعد ضابط", name: "شاهين حسن شاهين محمد" },
+        "100659": { rank: "مساعد ضابط", name: "عمر محمد حسن عباس" },
+        "100747": { rank: "مساعد ضابط", name: "احمد محمد خلف محمد صالح" },
+        "100758": { rank: "مساعد ضابط", name: "محمد خلفان راشد عبيد" },
+        "100836": { rank: "مساعد ضابط", name: "حمدان عبدالله هلال سند" },
+        "100945": { rank: "مساعد ضابط", name: "ابراهيم هيكل محمد كرم" },
+        "100946": { rank: "مساعد ضابط", name: "سعيد محمد مصطفى محمد" },
+        "100986": { rank: "مساعد ضابط", name: "عمران راشد عبدالسلام محمد معيني" },
+        "100999": { rank: "مساعد ضابط", name: "ابراهيم خليفه راشد اليماني" },
+        "101040": { rank: "مساعد ضابط", name: "فهد محمد مراد احمد المازمي" },
+        "101059": { rank: "مساعد ضابط", name: "حسين ابراهيم علي محمد الحوسني" },
+        "101171": { rank: "مساعد ضابط", name: "حمد حسن سالمين شهداد" },
+        "101252": { rank: "مساعد أول", name: "احمد مختار رضا علي الملا" },
+        "101291": { rank: "مساعد أول", name: "عبدالله معتوق خلف محمد الحوسني" },
+        "101308": { rank: "مساعد أول", name: "حميد حسن محمد الدرمكي" },
+        "101313": { rank: "مساعد أول", name: "عمر محمد صالح محمد علي النقبي" },
+        "101333": { rank: "مساعد أول", name: "فيصل يوسف كريم عيسى المازمي" },
+        "101341": { rank: "مساعد أول", name: "يوسف مال الله عبدالله محمد" },
+        "101512": { rank: "مساعد", name: "محمد راشد جمعه راشد بن ركن ال علي" },
+        "101598": { rank: "مساعد", name: "أحمد اسماعيل أحمد علي محمد عبدولي" },
+        "101604": { rank: "مساعد", name: "ابراهيم علي عبدالسلام محمد احمد" },
+        "101650": { rank: "مساعد", name: "خميس احمد خميس الملص ال علي" },
+        "101784": { rank: "مساعد", name: "حمد محمد غلوم محمد جمعه" },
+        "101787": { rank: "مساعد", name: "خليفه خالد علي محمد ال علي" },
+        "101932": { rank: "مساعد", name: "ابراهيم عيسى عبدالقادر علي" },
+        "102020": { rank: "رقيب أول", name: "عبدالله حسين خليل الحوسني" },
+        "102103": { rank: "رقيب أول", name: "محمد أحمد دادالله حاجي البلوشي" },
+        "102196": { rank: "رقيب أول", name: "عبدالله راشد عبيد راشد الـنداس" },
+        "102606": { rank: "عريف أول", name: "سالم عبد الله راشد بوالطش الشامسي" },
+        "102662": { rank: "عريف أول", name: "عبدالرحمن ثابت هلال سعيد الضو" },
+        "102854": { rank: "عريف أول", name: "عبدالله سرور مسعود سرور الياسي" },
+        "102955": { rank: "عريف أول", name: "محمد عبدالله علي جمعه صقر" },
+        "103034": { rank: "عريف أول", name: "سعود ايوب عباس علي المازمي" },
+        "103392": { rank: "عريف أول", name: "عبدالله حسن شاهين محمد المازمي" },
+        "103152": { rank: "عريف أول", name: "محمد درويش عيسى محمد" },
+        "103493": { rank: "عريف", name: "سيف حسين غانم عبيد روباري" },
+        "103553": { rank: "عريف", name: "احمد محمد عيسى كرم المازمي" },
+        "103590": { rank: "عريف", name: "غريب سالم علي غريب المازمي" },
+        "103599": { rank: "عريف", name: "خالد حسن راشد شهرين النقبي" },
+        "103604": { rank: "عريف", name: "عبيد محمد طارش سالم الكعبي" },
+        "103615": { rank: "عريف", name: "عادل ابراهيم حسن ابراهيم ال علي" },
+        "103634": { rank: "عريف", name: "محمد عبدالله محمد الدبيسي الظهوري" },
+        "103635": { rank: "عريف", name: "محمد عبدالله ابراهيم عبدالله الهوتي" },
+        "103636": { rank: "عريف", name: "سهيل سالم محمد خميس الكتبي" },
+        "103644": { rank: "عريف", name: "حميد سميح نوبي محمد البلوشي" },
+        "103774": { rank: "عريف", name: "محمد احمد محمد سليمان ال علي" },
+        "103777": { rank: "عريف", name: "سالم احمد عبدالله جاسم الحمادي" },
+        "103778": { rank: "عريف", name: "محمد يونس محمد عبدالله المازمي" },
+        "103779": { rank: "عريف", name: "سالم عبدالله محمد بن بحير المهيري" },
+        "103787": { rank: "عريف", name: "سالم ثاني مبارك الجلاف المهيري" },
+        "104317": { rank: "شرطي أول", name: "محمد طلعان نوبي محمد البلوشي" },
+        "104334": { rank: "شرطي أول", name: "محمد جاسم مطر كرمك البلوشي" },
+        "104372": { rank: "شرطي أول", name: "ناصر عبدالله سليمان علي البلوشي" },
+        "104803": { rank: "شرطي أول", name: "راشد ناصر الزري النبهاني" },
+        "104528": { rank: "شرطي أول", name: "خالد راشد عبدالله بن غرير الكتبي" },
+        "105042": { rank: "شرطي أول", name: "أحمد حمدان راشد الطنيجي" },
+        "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
+        "105364": { rank: "شرطي أول", name: "فهد سعيد كشيش الشحي" },
+        "105869": { rank: "شرطي أول", name: "حسن علي درويش محمد الرئيسي" }
+    };
+
+    const admins = ["1321", "1408", "1549", "1565", "1587", "1739", "1886", "1825"];
+    let duty = false, startTime, currentUser = "", userPhoto = "https://via.placeholder.com/150";
+
+    function login() {
+        let id = document.getElementById('milId').value.trim();
+        let pass = document.getElementById('pass').value;
+        let savedPass = localStorage.getItem(id + '_pass') || "SHJ@123";
+        if(personnelDB[id] && pass === savedPass) {
+            currentUser = id;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            if(admins.includes(id)) document.getElementById('adminPanel').style.display = 'block';
+            loadProfile();
+        } else { alert("بيانات غير صحيحة."); }
+    }
+
+    // دوال الجات المعدلة للمظهر الجديد
+    function openChat(groupName) {
+        document.getElementById('groupList').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        document.getElementById('currentGroupName').innerText = groupName;
+        document.getElementById('chatBox').innerHTML = `<div class="msg" style="background: rgba(255,255,255,0.05); border: none; justify-content: center;"><div><b>النظام:</b> نداء مشفر نَشِط في ${groupName}</div></div>`;
+    }
+
+    function backToGroups() {
+        document.getElementById('groupList').style.display = 'flex';
+        document.getElementById('activeChat').style.display = 'none';
+    }
+
+    function toggleDuty() {
+        duty = !duty;
+        let btn = document.getElementById('dutyBtn'), lbl = document.getElementById('statusLabel');
+        if(duty) {
+            btn.innerText = "إنهاء الخدمة"; btn.className = "btn btn-danger";
+            lbl.innerText = "في الخدمة (نشط)"; lbl.style.color = "var(--neon)";
+            startTime = Date.now(); startTimer();
+        } else { location.reload(); }
+    }
+
+    function startTimer() {
+        setInterval(() => {
+            if(!duty) return;
+            let diff = Date.now() - startTime;
+            let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            document.getElementById('timer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function switchTab(tab, el) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        if(document.getElementById(tab + 'Sec')) document.getElementById(tab + 'Sec').style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        if(tab === 'chat') backToGroups();
+    }
+
+    function updatePhoto(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = e => { userPhoto = e.target.result; document.getElementById('profilePrev').src = userPhoto; };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function saveSettings() {
+        localStorage.setItem(currentUser + '_photo', userPhoto);
+        if(document.getElementById('uPass').value) localStorage.setItem(currentUser + '_pass', document.getElementById('uPass').value);
+        loadProfile(); alert("تم حفظ الإعدادات بنجاح");
+    }
+
+    function loadProfile() {
+        let p = personnelDB[currentUser];
+        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('userDisplay').innerText = p.rank + " / " + p.name;
+        document.getElementById('fixedName').innerText = "الاسم الكامل: " + p.name;
+        document.getElementById('fixedRank').innerText = "الرتبة: " + p.rank;
+        document.getElementById('headerImg').src = photo;
+        document.getElementById('profilePrev').src = photo;
+    }
+
+    function triggerRaid() {
+        let msg = document.getElementById('raidMsg').value || "نداء مداهمة فوري لكافة الوحدات!";
+        document.getElementById('emergencyOverlay').style.display = 'flex';
+        document.getElementById('emergencyMsg').innerText = msg;
+        document.getElementById('alarmSound').play();
+    }
+
+    function stopAlarm() { document.getElementById('emergencyOverlay').style.display = 'none'; document.getElementById('alarmSound').pause(); }
+
+    function sendMsg() {
+        let inp = document.getElementById('msgInput'); if(!inp.value) return;
+        let p = personnelDB[currentUser];
+        let photo = localStorage.getItem(currentUser + '_photo') || "https://via.placeholder.com/150";
+        document.getElementById('chatBox').innerHTML += `<div class="msg"><img src="${photo}"><div><b>${p.name}:</b><br>${inp.value}</div></div>`;
+        inp.value = ""; document.getElementById('chatBox').scrollTop = 9999;
+    }
+</script>
+</body>
+</html>
