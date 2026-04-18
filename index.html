@@ -28,32 +28,35 @@
         .reject { background: var(--danger); color: #fff; }
         .control { background: #333; color: #fff; }
 
-        /* شاشة إنذار المداهمة */
+        /* شاشات التنبيه */
         #raidAlertUI { display: none; position: fixed; inset: 0; background: rgba(255, 0, 0, 0.95); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .alert-icon { font-size: 120px; color: white; animation: flash-alert 0.8s infinite; margin-bottom: 20px; }
         @keyframes flash-alert { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
-
-        /* شاشة تفعيل الصوت للأفراد */
         #audioPermissionUI { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* تسجيل الدخول */
+        /* تسجيل الدخول والواجهة */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
         .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         
         #mainApp { display: none; height: 100vh; flex-direction: column; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 100; }
         .nav-item { color: #555; font-size: 22px; cursor: pointer; }
         .nav-item.active { color: var(--neon); }
         .tab-content { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 80px; }
         
         .chat-box { height: calc(100vh - 280px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid #333; margin-bottom: 10px; }
         .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); align-items: flex-start; }
-        .msg img { width: 35px; height: 35px; border-radius: 50%; }
+        .msg img.profile-pic { width: 35px; height: 35px; border-radius: 50%; }
         .admin-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; }
-        
         .sys-msg { text-align: center; font-size: 11px; color: var(--neon); margin: 10px 0; background: rgba(0, 255, 65, 0.1); padding: 5px; border-radius: 5px; border: 1px solid rgba(0, 255, 65, 0.3); }
+        
+        /* تنسيق نموذج الرسائل والمرفقات */
+        .chat-controls { display: flex; gap: 10px; align-items: flex-end; background: #0b0e11; padding: 10px; border-radius: 8px; border: 1px solid #333; }
+        .chat-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 5px; transition: 0.2s; }
+        .chat-btn:hover { color: var(--neon); }
+        #msgInput { flex: 1; padding: 10px; background: #15191c; border: 1px solid #444; color: #fff; border-radius: 5px; margin: 0; resize: none; min-height: 40px; max-height: 150px; font-family: inherit; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -124,7 +127,6 @@
     </div>
 
     <div id="homeSec" class="tab-content">
-        
         <div id="adminPanel" style="display:none; background: #1c2126; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-right: 4px solid var(--neon);">
             <h4 style="margin:0 0 10px 0; color: var(--neon);"><i class="fas fa-shield-alt"></i> لوحة قيادة العمليات</h4>
             
@@ -176,10 +178,15 @@
                 <strong id="currentGroupName">--</strong>
                 <button onclick="backToGroups()" style="background:none; border: 1px solid #444; color: #fff; padding: 2px 10px; border-radius: 4px;">رجوع</button>
             </div>
+            
             <div id="chatBox" class="chat-box"></div>
-            <div style="display: flex; gap: 5px; align-items: center;">
-                <input type="text" id="msgInput" placeholder="أدخل البلاغ..." style="flex: 1; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; margin: 0;">
-                <button onclick="sendMsg()" style="background: none; border: none; color: var(--neon); font-size: 20px;"><i class="fas fa-paper-plane"></i></button>
+            
+            <div class="chat-controls">
+                <input type="file" id="chatFile" accept="image/*,.pdf,.doc,.docx" style="display:none;" onchange="uploadFile(event)">
+                <button class="chat-btn" onclick="document.getElementById('chatFile').click()" title="إرفاق ملف/صورة"><i class="fas fa-paperclip"></i></button>
+                <button class="chat-btn" onclick="insertRaidTemplate()" title="إدراج نموذج مداهمة"><i class="fas fa-file-alt"></i></button>
+                <textarea id="msgInput" placeholder="أدخل البلاغ..."></textarea>
+                <button class="chat-btn" style="color: var(--neon);" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -350,7 +357,6 @@
         listenForRaidAlerts();
     }
 
-    // --- نظام عداد المتصلين (Presence) ---
     function setupPresence() {
         let connectedRef = db.ref(".info/connected");
         connectedRef.on("value", (snap) => {
@@ -365,7 +371,6 @@
         });
     }
 
-    // --- إشعار الدخول للمجموعات (يُرسل مرة واحدة) ---
     function notifyGroupsLogin() {
         if (sessionStorage.getItem('login_notified')) return;
         
@@ -387,7 +392,6 @@
         });
     }
 
-    // --- الإدارة والتوزيع (تحديث إضافة/إزالة) ---
     function manageMember(action) {
         let rawT = document.getElementById('targetUser').value.trim();
         let t = rawT.split(' - ')[0].trim();
@@ -422,12 +426,77 @@
                     }
                 });
             }
-            // إرسال الإشعار بعد تحميل الصلاحيات
             notifyGroupsLogin();
         });
     }
 
-    // --- الشات وحذف الرسائل ---
+    // --- نموذج المداهمة ---
+    function insertRaidTemplate() {
+        const template = `الموضوع : مداهمة 
+القضيه : ( )
+التاريخ : ( )
+اليوم : ( ) 
+
+التحرك من الزاهيه: ( )
+
+المنطقة : ( )
+الوصول : ( )
+بدأ المداهمة: ( )
+والإنتهاء : ( )
+عدد الرجال : ( )
+الجنسية : ( ) 
+العودة إلى معسكر الزاهية : ( ) 
+
+الضباط :
+1- 
+2- 
+
+افراد المداهمة : 
+1- 
+2- 
+
+التسليح : 
+- 
+
+جهات المشاركة :
+1- المهام الخاصة ( العمليات الخاصة )
+2- `;
+        const input = document.getElementById('msgInput');
+        input.value = template;
+        input.style.height = '150px'; // توسيع الشاشة للنموذج
+        input.focus();
+    }
+
+    // --- رفع المرفقات (صور/ملفات) ---
+    function uploadFile(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        
+        // منع الملفات الضخمة (الحد الأقصى 3 ميجا عشان السيرفر)
+        if(file.size > 3 * 1024 * 1024) {
+            return alert("حجم الملف أو الصورة كبير جداً! الحد الأقصى 3 ميجابايت.");
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result;
+            const isImage = file.type.startsWith('image/');
+            
+            db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
+                id: currentUser,
+                name: personnelDB[currentUser].name, 
+                rank: personnelDB[currentUser].rank,
+                type: isImage ? 'image' : 'file',
+                fileName: file.name,
+                content: base64,
+                photo: localStorage.getItem(currentUser + '_photo') || "",
+                time: Date.now()
+            });
+        };
+        reader.readAsDataURL(file);
+        event.target.value = ''; // إعادة الضبط
+    }
+
     function openChat(n) {
         document.getElementById('groupList').style.display = 'none';
         document.getElementById('activeChat').style.display = 'flex';
@@ -442,17 +511,27 @@
                 if(m.system) {
                     box.innerHTML += `<div class="sys-msg">${m.text}</div>`;
                 } else {
-                    // إظهار زر المسح فقط لرسائل الشخص نفسه
                     let delBtn = (m.id === currentUser) ? `<i class="fas fa-trash" style="color:var(--danger); cursor:pointer; margin-right:auto;" onclick="deleteMessage('${n}', '${key}')"></i>` : "";
+                    
+                    let contentHtml = "";
+                    if(m.type === 'image') {
+                        contentHtml = `<a href="${m.content}" target="_blank"><img src="${m.content}" style="max-width: 100%; max-height: 250px; border-radius: 5px; margin-top: 5px; border: 1px solid var(--tactical);"></a>`;
+                    } else if (m.type === 'file') {
+                        contentHtml = `<a href="${m.content}" download="${m.fileName}" style="color: var(--neon); text-decoration: none; display: flex; align-items: center; gap: 5px; margin-top: 5px; background: #222; padding: 10px; border-radius: 5px;"><i class="fas fa-file-download" style="font-size:20px;"></i> <span>تحميل المرفق:<br><small style="color:#aaa;">${m.fileName}</small></span></a>`;
+                    } else {
+                        // white-space: pre-wrap يحافظ على النزول بالسطر في نموذج المداهمة
+                        contentHtml = `<div style="margin-top:5px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; font-family: inherit;">${m.text}</div>`;
+                    }
+
                     box.innerHTML += `
                         <div class="msg">
-                            <img src="${m.photo || 'https://via.placeholder.com/150'}">
-                            <div style="flex:1;">
+                            <img src="${m.photo || 'https://via.placeholder.com/150'}" class="profile-pic">
+                            <div style="flex:1; overflow:hidden;">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div style="color:var(--neon); font-size:10px;">${m.rank} / ${m.name}</div>
+                                    <div style="color:var(--neon); font-size:11px; font-weight:bold;">${m.rank} / ${m.name}</div>
                                     ${delBtn}
                                 </div>
-                                <div style="margin-top:3px;">${m.text}</div>
+                                ${contentHtml}
                             </div>
                         </div>`;
                 }
@@ -462,19 +541,24 @@
     }
 
     function sendMsg() {
-        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
+        const inp = document.getElementById('msgInput'); 
+        if(!inp.value.trim()) return;
+        
         db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
-            id: currentUser, // حفظ الـ ID لمعرفة صاحب الرسالة
+            id: currentUser,
+            type: 'text',
             name: personnelDB[currentUser].name, 
             rank: personnelDB[currentUser].rank,
             text: inp.value, 
-            photo: localStorage.getItem(currentUser + '_photo') || ""
+            photo: localStorage.getItem(currentUser + '_photo') || "",
+            time: Date.now()
         });
         inp.value = "";
+        inp.style.height = '40px'; // إرجاع الحجم الطبيعي للخانة بعد الإرسال
     }
 
     function deleteMessage(group, key) {
-        if(confirm("هل أنت متأكد من مسح هذه الرسالة؟")) {
+        if(confirm("هل أنت متأكد من مسح هذه الرسالة/المرفق؟")) {
             db.ref('chats/' + group + '/' + key).remove();
         }
     }
@@ -616,13 +700,4 @@
         document.getElementById('ringtone').pause(); clearInterval(callTimer);
     }
 
-    function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block'; document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
-    function logout() { 
-        db.ref('online_users/' + currentUser).remove(); 
-        sessionStorage.removeItem('login_notified');
-        localStorage.removeItem('session_user'); 
-        location.reload(); 
-    }
-</script>
-</body>
-</html>
+    function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + '
