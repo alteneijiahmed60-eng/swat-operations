@@ -13,7 +13,7 @@
         
         /* واجهة المكالمة */
         #callUI { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .call-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon); }
+        .call-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon); object-fit: cover; margin-bottom: 20px; box-shadow: 0 0 15px var(--neon); background: #111; }
         .call-info h2 { margin: 10px 0; font-size: 1.4rem; }
         .call-info p { margin: 2px 0; color: var(--tactical); }
         .timer { font-size: 2.8rem; color: var(--neon); font-family: monospace; margin: 25px 0; }
@@ -36,7 +36,7 @@
         /* شاشة تفعيل الصوت للأفراد */
         #audioPermissionUI { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 11000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* تسجيل الدخول والواجهة */
+        /* تسجيل الدخول */
         #loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
@@ -49,9 +49,11 @@
         .tab-content { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 80px; }
         
         .chat-box { height: calc(100vh - 280px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; border: 1px solid #333; margin-bottom: 10px; }
-        .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); }
+        .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; border-right: 3px solid var(--tactical); align-items: flex-start; }
         .msg img { width: 35px; height: 35px; border-radius: 50%; }
         .admin-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; box-sizing: border-box; }
+        
+        .sys-msg { text-align: center; font-size: 11px; color: var(--neon); margin: 10px 0; background: rgba(0, 255, 65, 0.1); padding: 5px; border-radius: 5px; border: 1px solid rgba(0, 255, 65, 0.3); }
     </style>
 </head>
 <body>
@@ -126,24 +128,29 @@
         <div id="adminPanel" style="display:none; background: #1c2126; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-right: 4px solid var(--neon);">
             <h4 style="margin:0 0 10px 0; color: var(--neon);"><i class="fas fa-shield-alt"></i> لوحة قيادة العمليات</h4>
             
-            <input type="text" id="targetUser" list="adminPersonnelList" class="admin-select" placeholder="ابحث عن العسكري بالرقم أو الاسم..." autocomplete="off">
+            <input type="text" id="targetUser" list="adminPersonnelList" class="admin-select" placeholder="ابحث عن العسكري..." autocomplete="off">
             <datalist id="adminPersonnelList"></datalist>
             
             <select id="targetGroupAdmin" class="admin-select">
+                <option value="المجموعة المشتركة">المجموعة المشتركة</option>
                 <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
                 <option value="المجموعة القتالية الثانية">القتالية الثانية</option>
                 <option value="المجموعة القتالية الثالثة">القتالية الثالثة</option>
                 <option value="قلم القوة">قلم القوة</option>
             </select>
             
-            <button class="btn-main" style="margin-bottom: 10px; font-size: 14px;" onclick="manageMember('add')"><i class="fas fa-user-plus"></i> توزيع العسكري للمجموعة</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button class="btn-main" style="flex: 1; font-size: 12px; padding: 10px;" onclick="manageMember('add')"><i class="fas fa-user-plus"></i> إضافة للمجموعة</button>
+                <button class="btn-main" style="flex: 1; background: var(--danger); color: #fff; font-size: 12px; padding: 10px;" onclick="manageMember('remove')"><i class="fas fa-user-minus"></i> إزالة من المجموعة</button>
+            </div>
+            
             <button class="btn-main" style="background: var(--danger); color: #fff; margin-bottom: 10px; font-size: 14px;" onclick="triggerRaid()"><i class="fas fa-exclamation-triangle"></i> إطلاق نداء مداهمة (صوتي)</button>
-            <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px;" onclick="clearChat()"><i class="fas fa-trash-alt"></i> مسح دردشة المشترك</button>
+            <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 14px;" onclick="clearChat()"><i class="fas fa-trash-alt"></i> مسح دردشة المجموعة المحددة</button>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <div style="font-size: 3rem; color: var(--neon);">00:00:00</div>
-            <p>المنظومة متصلة ومؤمنة</p>
+        <div style="text-align: center; margin-top: 40px; background: rgba(0, 255, 65, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(0, 255, 65, 0.2);">
+            <h3 style="margin: 0; color: var(--tactical);">عدد الأشخاص المتصلين</h3>
+            <div id="onlineCountDisplay" style="font-size: 4rem; color: var(--neon); font-weight: bold; margin-top: 10px;">0</div>
         </div>
     </div>
 
@@ -199,7 +206,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // جميع الأسماء الـ 60
     const personnelDB = {
         "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
         "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
@@ -291,7 +297,6 @@
 
         Object.keys(personnelDB).sort().forEach(id => {
             let text = id + " - " + personnelDB[id].name;
-            
             let d1 = document.createElement('option'); d1.value = text; loginList.appendChild(d1);
             let d2 = document.createElement('option'); d2.value = text; callList.appendChild(d2);
             let d3 = document.createElement('option'); d3.value = text; adminList.appendChild(d3);
@@ -339,54 +344,68 @@
             document.getElementById('adminPanel').style.display = 'block';
         }
         
+        setupPresence();
         checkGroups();
         listenForCalls();
         listenForRaidAlerts();
     }
 
-    // --- نظام إنذار المداهمة ---
-    function triggerRaid() {
-        if(confirm("تأكيد: إطلاق نداء مداهمة لجميع القوات؟")) {
-            db.ref('alerts/raid').push({ 
-                time: Date.now(), 
-                byRank: personnelDB[currentUser].rank, 
-                byName: personnelDB[currentUser].name 
-            });
-        }
-    }
-
-    function listenForRaidAlerts() {
-        db.ref('alerts/raid').limitToLast(1).on('child_added', snap => {
-            const data = snap.val();
-            if(data && (Date.now() - data.time < 15000)) {
-                document.getElementById('raidAlertSender').innerText = `بأمر من: ${data.byRank} / ${data.byName}`;
-                document.getElementById('raidAlertUI').style.display = 'flex';
-                let siren = document.getElementById('sirenSound');
-                siren.currentTime = 0;
-                siren.play().catch(e => console.log(e));
+    // --- نظام عداد المتصلين (Presence) ---
+    function setupPresence() {
+        let connectedRef = db.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true && currentUser !== "") {
+                let myOnlineRef = db.ref('online_users/' + currentUser);
+                myOnlineRef.onDisconnect().remove();
+                myOnlineRef.set(true);
             }
+        });
+        db.ref('online_users').on('value', snap => {
+            document.getElementById('onlineCountDisplay').innerText = snap.numChildren();
         });
     }
 
-    function dismissRaidAlert() {
-        document.getElementById('raidAlertUI').style.display = 'none';
-        let siren = document.getElementById('sirenSound');
-        siren.pause();
-        siren.currentTime = 0;
+    // --- إشعار الدخول للمجموعات (يُرسل مرة واحدة) ---
+    function notifyGroupsLogin() {
+        if (sessionStorage.getItem('login_notified')) return;
+        
+        db.ref('users_groups/' + currentUser).once('value', snap => {
+            const acc = snap.val() || {};
+            const groupNames = { "g1": "المجموعة القتالية الأولى", "g2": "المجموعة القتالية الثانية", "g3": "المجموعة القتالية الثالثة", "g4": "قلم القوة" };
+            const p = personnelDB[currentUser];
+            
+            Object.keys(acc).forEach(gCode => {
+                if (acc[gCode] && groupNames[gCode]) {
+                    db.ref('chats/' + groupNames[gCode]).push({
+                        system: true,
+                        text: `تم تسجيل دخول: ${p.rank} / ${p.name} - الرقم العسكري: ${currentUser}`,
+                        time: Date.now()
+                    });
+                }
+            });
+            sessionStorage.setItem('login_notified', 'true');
+        });
     }
 
-    // --- الإدارة والتوزيع ---
+    // --- الإدارة والتوزيع (تحديث إضافة/إزالة) ---
     function manageMember(action) {
         let rawT = document.getElementById('targetUser').value.trim();
         let t = rawT.split(' - ')[0].trim();
         if(!personnelDB[t]) return alert("الرجاء اختيار عسكري صحيح من القائمة.");
 
         let g = document.getElementById('targetGroupAdmin').value;
-        let gCode = g.includes("الأولى") ? "g1" : g.includes("الثانية") ? "g2" : g.includes("الثالثة") ? "g3" : "g4";
-        
-        db.ref('users_groups/' + t + '/' + gCode).set(true).then(() => {
-            alert("تم توزيع العسكري بنجاح عبر السيرفر.");
-        }).catch(e => alert("خطأ: " + e));
+        let gCode = g;
+        if(g === "المجموعة القتالية الأولى") gCode = "g1";
+        else if(g === "المجموعة القتالية الثانية") gCode = "g2";
+        else if(g === "المجموعة القتالية الثالثة") gCode = "g3";
+        else if(g === "قلم القوة") gCode = "g4";
+        else if(g === "المجموعة المشتركة") return alert("المجموعة المشتركة أساسية للجميع ولا يمكن الإزالة منها.");
+
+        if(action === 'add') {
+            db.ref('users_groups/' + t + '/' + gCode).set(true).then(() => alert("تمت إضافة العسكري للمجموعة بنجاح."));
+        } else {
+            db.ref('users_groups/' + t + '/' + gCode).remove().then(() => alert("تمت إزالة العسكري من المجموعة بنجاح."));
+        }
     }
 
     function checkGroups() {
@@ -403,22 +422,104 @@
                     }
                 });
             }
+            // إرسال الإشعار بعد تحميل الصلاحيات
+            notifyGroupsLogin();
         });
+    }
+
+    // --- الشات وحذف الرسائل ---
+    function openChat(n) {
+        document.getElementById('groupList').style.display = 'none';
+        document.getElementById('activeChat').style.display = 'flex';
+        document.getElementById('currentGroupName').innerText = n;
+        
+        db.ref('chats/' + n).on('value', snap => {
+            const box = document.getElementById('chatBox'); box.innerHTML = "";
+            snap.forEach(c => {
+                const m = c.val();
+                const key = c.key;
+                
+                if(m.system) {
+                    box.innerHTML += `<div class="sys-msg">${m.text}</div>`;
+                } else {
+                    // إظهار زر المسح فقط لرسائل الشخص نفسه
+                    let delBtn = (m.id === currentUser) ? `<i class="fas fa-trash" style="color:var(--danger); cursor:pointer; margin-right:auto;" onclick="deleteMessage('${n}', '${key}')"></i>` : "";
+                    box.innerHTML += `
+                        <div class="msg">
+                            <img src="${m.photo || 'https://via.placeholder.com/150'}">
+                            <div style="flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div style="color:var(--neon); font-size:10px;">${m.rank} / ${m.name}</div>
+                                    ${delBtn}
+                                </div>
+                                <div style="margin-top:3px;">${m.text}</div>
+                            </div>
+                        </div>`;
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function sendMsg() {
+        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
+        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
+            id: currentUser, // حفظ الـ ID لمعرفة صاحب الرسالة
+            name: personnelDB[currentUser].name, 
+            rank: personnelDB[currentUser].rank,
+            text: inp.value, 
+            photo: localStorage.getItem(currentUser + '_photo') || ""
+        });
+        inp.value = "";
+    }
+
+    function deleteMessage(group, key) {
+        if(confirm("هل أنت متأكد من مسح هذه الرسالة؟")) {
+            db.ref('chats/' + group + '/' + key).remove();
+        }
+    }
+
+    function clearChat() { 
+        let g = document.getElementById('targetGroupAdmin').value;
+        if(confirm(`تحذير: مسح جميع رسائل (${g}) نهائياً من النظام؟`)) {
+            db.ref('chats/' + g).remove(); 
+        }
+    }
+
+    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
+
+    // --- إنذار المداهمة ---
+    function triggerRaid() {
+        if(confirm("تأكيد: إطلاق نداء مداهمة لجميع القوات؟")) {
+            db.ref('alerts/raid').push({ time: Date.now(), byRank: personnelDB[currentUser].rank, byName: personnelDB[currentUser].name });
+        }
+    }
+
+    function listenForRaidAlerts() {
+        db.ref('alerts/raid').limitToLast(1).on('child_added', snap => {
+            const data = snap.val();
+            if(data && (Date.now() - data.time < 15000)) {
+                document.getElementById('raidAlertSender').innerText = `بأمر من: ${data.byRank} / ${data.byName}`;
+                document.getElementById('raidAlertUI').style.display = 'flex';
+                let siren = document.getElementById('sirenSound');
+                siren.currentTime = 0; siren.play().catch(e => console.log(e));
+            }
+        });
+    }
+
+    function dismissRaidAlert() {
+        document.getElementById('raidAlertUI').style.display = 'none';
+        let siren = document.getElementById('sirenSound'); siren.pause(); siren.currentTime = 0;
     }
 
     // --- الاتصال (WebRTC) ---
     async function getMediaStream() {
-        try {
-            let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            stream.getVideoTracks().forEach(t => t.enabled = false); 
-            return stream;
-        } catch(e) { return await navigator.mediaDevices.getUserMedia({ audio: true }); }
+        try { let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true }); stream.getVideoTracks().forEach(t => t.enabled = false); return stream; } catch(e) { return await navigator.mediaDevices.getUserMedia({ audio: true }); }
     }
 
     function toggleMute() {
         if(localStream && localStream.getAudioTracks().length > 0) {
-            isMuted = !isMuted;
-            localStream.getAudioTracks()[0].enabled = !isMuted;
+            isMuted = !isMuted; localStream.getAudioTracks()[0].enabled = !isMuted;
             let btn = document.getElementById('muteBtn');
             btn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
             btn.style.background = isMuted ? 'var(--danger)' : '#333';
@@ -427,61 +528,35 @@
 
     function toggleVideo() {
         if(localStream && localStream.getVideoTracks().length > 0) {
-            isVideoOn = !isVideoOn;
-            localStream.getVideoTracks()[0].enabled = isVideoOn;
+            isVideoOn = !isVideoOn; localStream.getVideoTracks()[0].enabled = isVideoOn;
             let btn = document.getElementById('videoBtn');
             btn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
-            btn.style.background = isVideoOn ? 'var(--neon)' : '#333';
-            btn.style.color = isVideoOn ? '#000' : '#fff';
-            if(currentCallRefId) {
-                let field = (currentUser === currentCallRefId) ? 'receiverVideo' : 'callerVideo';
-                db.ref('calls/' + currentCallRefId + '/' + field).set(isVideoOn);
-            }
+            btn.style.background = isVideoOn ? 'var(--neon)' : '#333'; btn.style.color = isVideoOn ? '#000' : '#fff';
+            if(currentCallRefId) { let field = (currentUser === currentCallRefId) ? 'receiverVideo' : 'callerVideo'; db.ref('calls/' + currentCallRefId + '/' + field).set(isVideoOn); }
         } else { alert("الكاميرا غير متوفرة"); }
     }
 
     async function startCall() {
-        let rawInput = document.getElementById('targetId').value.trim();
-        let tid = rawInput.split(' - ')[0].trim();
-        
+        let rawInput = document.getElementById('targetId').value.trim(); let tid = rawInput.split(' - ')[0].trim();
         if(!personnelDB[tid] || tid === currentUser) return alert("الرقم خطأ أو غير صالح");
-
-        currentCallRefId = tid;
-        setupCallUI(tid, 'calling');
-
-        localStream = await getMediaStream();
-        peerConnection = new RTCPeerConnection(servers);
-
+        currentCallRefId = tid; setupCallUI(tid, 'calling');
+        localStream = await getMediaStream(); peerConnection = new RTCPeerConnection(servers);
         peerConnection.ontrack = e => {
             if(e.track.kind === 'audio') document.getElementById('remoteAudio').srcObject = e.streams[0];
             if(e.track.kind === 'video') document.getElementById('remoteVideo').srcObject = e.streams[0];
         };
-
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        peerConnection.onicecandidate = e => {
-            if(e.candidate) db.ref(`calls/${tid}/callerCandidates`).push(e.candidate.toJSON());
-        };
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-
-        db.ref('calls/' + tid).set({
-            offer: { type: offer.type, sdp: offer.sdp }, callerId: currentUser, status: 'ringing', callerVideo: false, receiverVideo: false
-        });
-
+        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${tid}/callerCandidates`).push(e.candidate.toJSON()); };
+        const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer);
+        db.ref('calls/' + tid).set({ offer: { type: offer.type, sdp: offer.sdp }, callerId: currentUser, status: 'ringing', callerVideo: false, receiverVideo: false });
         db.ref(`calls/${tid}`).on('value', async snap => {
             const data = snap.val();
             if(data && data.status === 'accepted') {
-                if(data.answer && !peerConnection.currentRemoteDescription) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                    startActiveCallUI();
-                }
+                if(data.answer && !peerConnection.currentRemoteDescription) { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); startActiveCallUI(); }
                 if(data.receiverVideo) { document.getElementById('peerImg').style.display = 'none'; document.getElementById('remoteVideo').style.display = 'block'; } 
                 else { document.getElementById('peerImg').style.display = 'block'; document.getElementById('remoteVideo').style.display = 'none'; }
             }
         });
-
         db.ref(`calls/${tid}/receiverCandidates`).on('child_added', snap => { peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); });
     }
 
@@ -489,45 +564,28 @@
         db.ref('calls/' + currentUser).on('value', async snap => {
             const data = snap.val();
             if(data && data.status === 'ringing') {
-                currentCallRefId = currentUser;
-                setupCallUI(data.callerId, 'incoming');
-                document.getElementById('ringtone').play().catch(e=>console.log(e));
-            } 
-            else if (data && data.status === 'accepted') {
+                currentCallRefId = currentUser; setupCallUI(data.callerId, 'incoming'); document.getElementById('ringtone').play().catch(e=>console.log(e));
+            } else if (data && data.status === 'accepted') {
                 if(data.callerVideo) { document.getElementById('peerImg').style.display = 'none'; document.getElementById('remoteVideo').style.display = 'block'; } 
                 else { document.getElementById('peerImg').style.display = 'block'; document.getElementById('remoteVideo').style.display = 'none'; }
-            }
-            else if (!data) { hideCallUI(); }
+            } else if (!data) { hideCallUI(); }
         });
     }
 
     async function handleAccept() {
         document.getElementById('ringtone').pause();
-        const snap = await db.ref('calls/' + currentUser).get();
-        const data = snap.val();
-
-        localStream = await getMediaStream();
-        peerConnection = new RTCPeerConnection(servers);
-        
+        const snap = await db.ref('calls/' + currentUser).get(); const data = snap.val();
+        localStream = await getMediaStream(); peerConnection = new RTCPeerConnection(servers);
         peerConnection.ontrack = e => {
             if(e.track.kind === 'audio') document.getElementById('remoteAudio').srcObject = e.streams[0];
             if(e.track.kind === 'video') document.getElementById('remoteVideo').srcObject = e.streams[0];
         };
-
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        peerConnection.onicecandidate = e => {
-            if(e.candidate) db.ref(`calls/${currentUser}/receiverCandidates`).push(e.candidate.toJSON());
-        };
-
+        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${currentUser}/receiverCandidates`).push(e.candidate.toJSON()); };
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-
+        const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer);
         await db.ref('calls/' + currentUser).update({ answer: { type: answer.type, sdp: answer.sdp }, status: 'accepted' });
-
         db.ref(`calls/${currentUser}/callerCandidates`).on('child_added', snap => { peerConnection.addIceCandidate(new RTCIceCandidate(snap.val())); });
-
         startActiveCallUI();
     }
 
@@ -537,91 +595,34 @@
         document.getElementById('peerName').innerText = personnelDB[id].name;
         document.getElementById('peerRank').innerText = personnelDB[id].rank;
         document.getElementById('peerMilId').innerText = "الرقم العسكري: " + id;
-        
-        if(type === 'incoming') {
-            document.getElementById('callActionBtns').style.display = 'flex';
-            document.getElementById('acceptBtn').style.display = 'flex';
-            document.getElementById('callStatusText').innerText = "بلاغ اتصال وارد...";
-        } else {
-            document.getElementById('callActionBtns').style.display = 'flex';
-            document.getElementById('acceptBtn').style.display = 'none';
-            document.getElementById('callStatusText').innerText = "جاري تأمين الخط...";
-        }
+        if(type === 'incoming') { document.getElementById('callActionBtns').style.display = 'flex'; document.getElementById('acceptBtn').style.display = 'flex'; document.getElementById('callStatusText').innerText = "بلاغ اتصال وارد..."; } 
+        else { document.getElementById('callActionBtns').style.display = 'flex'; document.getElementById('acceptBtn').style.display = 'none'; document.getElementById('callStatusText').innerText = "جاري تأمين الخط..."; }
     }
 
     function startActiveCallUI() {
-        document.getElementById('callHeader').style.display = 'none';
-        document.getElementById('callActionBtns').style.display = 'none';
-        document.getElementById('activeCallBtns').style.display = 'flex';
-        document.getElementById('activeCallTimer').style.display = 'block';
-        
-        let sec = 0;
-        clearInterval(callTimer);
-        callTimer = setInterval(() => {
-            sec++;
-            let m = Math.floor(sec/60), s = sec%60;
-            document.getElementById('activeCallTimer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        }, 1000);
+        document.getElementById('callHeader').style.display = 'none'; document.getElementById('callActionBtns').style.display = 'none'; document.getElementById('activeCallBtns').style.display = 'flex'; document.getElementById('activeCallTimer').style.display = 'block';
+        let sec = 0; clearInterval(callTimer);
+        callTimer = setInterval(() => { sec++; let m = Math.floor(sec/60), s = sec%60; document.getElementById('activeCallTimer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }, 1000);
     }
 
-    function endCall() {
-        if(currentCallRefId) db.ref('calls/' + currentCallRefId).remove();
-        hideCallUI();
-    }
+    function endCall() { if(currentCallRefId) db.ref('calls/' + currentCallRefId).remove(); hideCallUI(); }
 
     function hideCallUI() {
-        if(localStream) localStream.getTracks().forEach(t => t.stop());
-        if(peerConnection) peerConnection.close();
-        currentCallRefId = "";
-        
+        if(localStream) localStream.getTracks().forEach(t => t.stop()); if(peerConnection) peerConnection.close(); currentCallRefId = "";
         isMuted = false; isVideoOn = false;
         document.getElementById('muteBtn').innerHTML = '<i class="fas fa-microphone"></i>'; document.getElementById('muteBtn').style.background = '#333';
         document.getElementById('videoBtn').innerHTML = '<i class="fas fa-video-slash"></i>'; document.getElementById('videoBtn').style.background = '#333'; document.getElementById('videoBtn').style.color = '#fff';
-        
-        document.getElementById('callUI').style.display = 'none';
-        document.getElementById('callHeader').style.display = 'flex';
-        document.getElementById('activeCallTimer').style.display = 'none';
-        document.getElementById('activeCallBtns').style.display = 'none';
-        document.getElementById('peerImg').style.display = 'block';
-        document.getElementById('remoteVideo').style.display = 'none';
-        
-        document.getElementById('ringtone').pause();
-        clearInterval(callTimer);
+        document.getElementById('callUI').style.display = 'none'; document.getElementById('callHeader').style.display = 'flex'; document.getElementById('activeCallTimer').style.display = 'none'; document.getElementById('activeCallBtns').style.display = 'none'; document.getElementById('peerImg').style.display = 'block'; document.getElementById('remoteVideo').style.display = 'none';
+        document.getElementById('ringtone').pause(); clearInterval(callTimer);
     }
 
-    // --- الشات والملاحة ---
-    function openChat(n) {
-        document.getElementById('groupList').style.display = 'none';
-        document.getElementById('activeChat').style.display = 'flex';
-        document.getElementById('currentGroupName').innerText = n;
-        db.ref('chats/' + n).on('value', snap => {
-            const box = document.getElementById('chatBox'); box.innerHTML = "";
-            snap.forEach(c => {
-                const m = c.val();
-                box.innerHTML += `<div class="msg"><img src="${m.photo || 'https://via.placeholder.com/150'}"><div><div style="color:var(--neon); font-size:10px;">${m.rank} / ${m.name}</div><div>${m.text}</div></div></div>`;
-            });
-            box.scrollTop = box.scrollHeight;
-        });
+    function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block'; document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
+    function logout() { 
+        db.ref('online_users/' + currentUser).remove(); 
+        sessionStorage.removeItem('login_notified');
+        localStorage.removeItem('session_user'); 
+        location.reload(); 
     }
-
-    function sendMsg() {
-        const inp = document.getElementById('msgInput'); if(!inp.value.trim()) return;
-        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({
-            name: personnelDB[currentUser].name, rank: personnelDB[currentUser].rank,
-            text: inp.value, photo: localStorage.getItem(currentUser + '_photo') || ""
-        });
-        inp.value = "";
-    }
-
-    function clearChat() { if(confirm("مسح الشات المشترك بالكامل؟")) db.ref('chats/المجموعة المشتركة').remove(); }
-    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
-    function switchTab(t, el) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.getElementById(t + 'Sec').style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-    }
-    function logout() { localStorage.removeItem('session_user'); location.reload(); }
 </script>
 </body>
 </html>
