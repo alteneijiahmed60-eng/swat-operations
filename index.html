@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0a0a0a">
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/ar/thumb/f/f6/Sharjah_Police_Logo.svg/1200px-Sharjah_Police_Logo.svg.png">
+    
     <title>منظومة العمليات الخاصة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(console.error);
+        }
+    </script>
     <style>
         :root {
             /* الهوية التكتيكية */
@@ -548,6 +557,13 @@
     // --- Init & Auth ---
     db.ref('user_profiles').on('value', snap => { profilesMap = snap.val() || {}; if(currentUser) updateHeaderAvatar(); });
     if (window.PublicKeyCredential) document.getElementById('fingerprintLoginBtn').style.display = 'inline-block';
+
+    // Register Service Worker for PWA Installation
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Reg Failed:', err));
+        });
+    }
 
     window.onload = () => {
         const savedUser = localStorage.getItem('session_user');
