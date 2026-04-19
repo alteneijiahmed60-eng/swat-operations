@@ -601,6 +601,13 @@
         });
     }
 
+    // Security warning for mobile HTTP
+    if(window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        setTimeout(() => {
+            alert("⚠️ تنبيه أمني ⚠️\nأنت تستخدم رابط غير مشفر (HTTP). متصفحات الهواتف (مثل سفاري وكروم) ستمنع تشغيل الكاميرا والمايكروفون تماماً ولن يعمل الاتصال! \n\nالحل: افتح الملف Run_Online_Server.bat في الكمبيوتر، وسيعطيك رابط آمن (HTTPS) مع كود QR. استخدمه بدلاً من هذا الرابط.");
+        }, 1500);
+    }
+
     // --- Tactical Radio System (PTT) ---
     let radioFreqStr = "145_50";
     let radioRecorder; let radioChunks = []; let isRadioRec = false; let radioListener = null; let radioRoomRef = null;
@@ -685,8 +692,17 @@
             try { radioRecorder = new MediaRecorder(stream, { audioBitsPerSecond: 16000 }); } 
             catch(e) { radioRecorder = new MediaRecorder(stream); }
             radioChunks = [];
-            radioRecorder.ondataavailable = e => radioChunks.push(e.data);
-            radioRecorder.start(); isRadioRec = true;
+            radioRecorder.ondataavailable = e => {
+                if(e.data.size > 0) {
+                    const blob = new Blob([e.data]);
+                    const reader = new FileReader(); reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        if(reader.result) db.ref(`radio_msgs/${radioFreqStr}`).push({ senderId: currentUser, time: Date.now(), audioData: reader.result });
+                    };
+                }
+            };
+            radioRecorder.start(800); // Live stream every 800ms
+            isRadioRec = true;
             document.getElementById('pttBtn').classList.add('ptt-recording');
             document.getElementById('radioBeepSound').play().catch(e=>{});
             navigator.vibrate && navigator.vibrate(50);
@@ -706,15 +722,6 @@
         radioRecorder.stream.getTracks().forEach(t => t.stop());
         
         db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}/isTalking`).set(false);
-        
-        radioRecorder.onstop = () => {
-            const blob = new Blob(radioChunks);
-            const reader = new FileReader(); reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                if(!reader.result) return;
-                db.ref(`radio_msgs/${radioFreqStr}`).push({ senderId: currentUser, time: Date.now(), audioData: reader.result });
-            };
-        };
     }
 
     // --- WebRTC Video & Audio Calls ---
