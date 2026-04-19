@@ -668,12 +668,10 @@
                 const beep = document.getElementById('radioBeepSound');
                 const player = document.getElementById('radioPlayer');
                 if(beep) beep.play().catch(e=>{});
-                setTimeout(() => {
-                    if(player) {
-                        player.src = msg.audioData;
-                        player.play().catch(e => console.log("Audio blocked by Safari", e));
-                    }
-                }, 300);
+                if(player) {
+                    player.src = msg.audioData;
+                    player.play().catch(e => console.log("Audio blocked by Safari", e));
+                }
             }
         });
     }
@@ -684,7 +682,9 @@
         try {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("No media support on file://");
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            radioRecorder = new MediaRecorder(stream); radioChunks = [];
+            try { radioRecorder = new MediaRecorder(stream, { audioBitsPerSecond: 16000 }); } 
+            catch(e) { radioRecorder = new MediaRecorder(stream); }
+            radioChunks = [];
             radioRecorder.ondataavailable = e => radioChunks.push(e.data);
             radioRecorder.start(); isRadioRec = true;
             document.getElementById('pttBtn').classList.add('ptt-recording');
@@ -693,7 +693,7 @@
             
             db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}/isTalking`).set(true);
         } catch(err) { 
-            showToast("المايك غير متاح! يجب استخدام ملف التشغيل Run_OFC.bat لتجاوز أمان المتصفح.", "error"); 
+            showToast("المايك غير متاح! استخدم ملف Run_Online_Server.bat للاتصال الآمن.", "error"); 
             console.error(err);
         }
     }
