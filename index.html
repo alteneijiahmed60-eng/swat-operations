@@ -311,7 +311,7 @@
         <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
             <div class="radio-screen">
                 <div style="font-size:12px; color:#888; margin-bottom:5px;">الموجة الحالية (MHz)</div>
-                <div class="freq-display" id="radioFreqDisplay">145.50</div>
+                <input type="number" step="0.01" class="freq-display" id="radioFreqInput" value="145.50" onchange="manualFreqChange()" style="background:transparent; border:none; text-align:center; width:100%; outline:none; padding:0; margin: 10px 0;">
                 <div style="display:flex; justify-content:center; gap:20px; margin-top:15px;">
                     <button class="btn btn-outline" style="width:60px; height:40px; padding:0;" onclick="changeFreq(-0.5)"><i class="fas fa-minus"></i></button>
                     <button class="btn btn-outline" style="width:60px; height:40px; padding:0;" onclick="changeFreq(0.5)"><i class="fas fa-plus"></i></button>
@@ -429,7 +429,37 @@
         "1549": { rank: "نقيب", name: "راشد احمد عبدالرحمن" }, "1565": { rank: "نقيب", name: "طلال حسن شهيل" },
         "1587": { rank: "نقيب", name: "محمد علي الدرمكي" }, "1739": { rank: "ملازم أول", name: "سالم راشد الخيال" },
         "1886": { rank: "ملازم", name: "صالح عبيد غريب" }, "1825": { rank: "ملازم", name: "محمد سعيد النقبي" },
-        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله ال علي" }, "102606": { rank: "عريف أول", name: "سالم عبد الله الشامسي" }
+        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله ال علي" }, "100270": { rank: "مساعد ضابط", name: "حسن علي محمد النقبي" },
+        "100342": { rank: "مساعد ضابط", name: "خالد حسين الحوسني" }, "100576": { rank: "مساعد ضابط", name: "شاهين حسن شاهين" },
+        "100659": { rank: "مساعد ضابط", name: "عمر محمد حسن عباس" }, "100747": { rank: "مساعد ضابط", name: "احمد محمد خلف صالح" },
+        "100758": { rank: "مساعد ضابط", name: "محمد خلفان راشد عبيد" }, "100836": { rank: "مساعد ضابط", name: "حمدان عبدالله سند" },
+        "100945": { rank: "مساعد ضابط", name: "ابراهيم هيكل كرم" }, "100946": { rank: "مساعد ضابط", name: "سعيد محمد مصطفى" },
+        "100986": { rank: "مساعد ضابط", name: "عمران راشد معيني" }, "100999": { rank: "مساعد ضابط", name: "ابراهيم خليفه اليماني" },
+        "101040": { rank: "مساعد ضابط", name: "فهد محمد مراد المازمي" }, "101059": { rank: "مساعد ضابط", name: "حسين ابراهيم الحوسني" },
+        "101171": { rank: "مساعد ضابط", name: "حمد حسن شهداد" }, "101252": { rank: "مساعد أول", name: "احمد مختار الملا" },
+        "101291": { rank: "مساعد أول", name: "عبدالله معتوق الحوسني" }, "101308": { rank: "مساعد أول", name: "حميد حسن الدرمكي" },
+        "101313": { rank: "مساعد أول", name: "عمر محمد صالح النقبي" }, "101333": { rank: "مساعد أول", name: "فيصل يوسف المازمي" },
+        "101341": { rank: "مساعد أول", name: "يوسف مال الله عبدالله" }, "101512": { rank: "مساعد", name: "محمد راشد بن ركن" },
+        "101598": { rank: "مساعد", name: "أحمد اسماعيل عبدولي" }, "101604": { rank: "مساعد", name: "ابراهيم علي عبدالسلام" },
+        "101650": { rank: "مساعد", name: "خميس احمد الملص" }, "101784": { rank: "مساعد", name: "حمد محمد غلوم" },
+        "101787": { rank: "مساعد", name: "خليفه خالد ال علي" }, "101932": { rank: "مساعد", name: "ابراهيم عيسى عبدالقادر" },
+        "102020": { rank: "رقيب أول", name: "عبدالله حسين الحوسني" }, "102103": { rank: "رقيب أول", name: "محمد أحمد البلوشي" },
+        "102196": { rank: "رقيب أول", name: "عبدالله راشد الـنداس" }, "102606": { rank: "عريف أول", name: "سالم عبد الله الشامسي" },
+        "102662": { rank: "عريف أول", name: "عبدالرحمن ثابت الضو" }, "102854": { rank: "عريف أول", name: "عبدالله سرور الياسي" },
+        "102955": { rank: "عريف أول", name: "محمد عبدالله صقر" }, "103034": { rank: "عريف أول", name: "سعود ايوب المازمي" },
+        "103392": { rank: "عريف أول", name: "عبدالله حسن المازمي" }, "103152": { rank: "عريف أول", name: "محمد درويش محمد" },
+        "103493": { rank: "عريف", name: "سيف حسين روباري" }, "103553": { rank: "عريف", name: "احمد محمد المازمي" },
+        "103590": { rank: "عريف", name: "غريب سالم المازمي" }, "103599": { rank: "عريف", name: "خالد حسن النقبي" },
+        "103604": { rank: "عريف", name: "عبيد محمد طارش الكعبي" }, "103615": { rank: "عريف", name: "عادل ابراهيم ال علي" },
+        "103634": { rank: "عريف", name: "محمد عبدالله الظهوري" }, "103635": { rank: "عريف", name: "محمد عبدالله الهوتي" },
+        "103636": { rank: "عريف", name: "سهيل سالم الكتبي" }, "103644": { rank: "عريف", name: "حميد سميح البلوشي" },
+        "103774": { rank: "عريف", name: "محمد احمد سليمان" }, "103777": { rank: "عريف", name: "سالم احمد الحمادي" },
+        "103778": { rank: "عريف", name: "محمد يونس المازمي" }, "103779": { rank: "عريف", name: "سالم عبدالله المهيري" },
+        "103787": { rank: "عريف", name: "سالم ثاني الجلاف" }, "104317": { rank: "شرطي أول", name: "محمد طلعان البلوشي" },
+        "104334": { rank: "شرطي أول", name: "محمد جاسم البلوشي" }, "104372": { rank: "شرطي أول", name: "ناصر عبدالله البلوشي" },
+        "104803": { rank: "شرطي أول", name: "راشد ناصر النبهاني" }, "104528": { rank: "شرطي أول", name: "خالد راشد الكتبي" },
+        "105042": { rank: "شرطي أول", name: "أحمد حمدان الطنيجي" }, "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
+        "105364": { rank: "شرطي أول", name: "فهد سعيد الشحي" }, "105869": { rank: "شرطي أول", name: "حسن علي الرئيسي" }
     };
 
     let currentUser = "";
@@ -541,9 +571,17 @@
     let radioFreq = 145.5;
     let radioRecorder; let radioChunks = []; let isRadioRec = false; let radioListener = null;
 
+    function manualFreqChange() {
+        let val = parseFloat(document.getElementById('radioFreqInput').value);
+        if(isNaN(val)) val = 145.50;
+        radioFreq = val;
+        document.getElementById('radioFreqInput').value = radioFreq.toFixed(2);
+        listenToRadioFreq();
+    }
+
     function changeFreq(delta) {
         radioFreq = (radioFreq + delta);
-        document.getElementById('radioFreqDisplay').innerText = radioFreq.toFixed(2);
+        document.getElementById('radioFreqInput').value = radioFreq.toFixed(2);
         listenToRadioFreq();
     }
 
@@ -567,6 +605,9 @@
     async function startPTT(e) {
         if(e) e.preventDefault();
         if(isRadioRec) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return showToast("الصلاحية مرفوضة: المتصفح يتطلب استضافة (HTTPS) للمايكروفون", "error");
+        }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             radioRecorder = new MediaRecorder(stream); radioChunks = [];
@@ -624,7 +665,8 @@
         document.getElementById('activeCallModal').style.display = 'flex';
         document.getElementById('activeCallName').innerText = `جاري الاتصال بـ ${personnelDB[targetId].name}...`;
         
-        await setupWebRTC();
+        const rtcSuccess = await setupWebRTC();
+        if(!rtcSuccess) { cleanupCall(); return; }
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         
@@ -650,7 +692,8 @@
         document.getElementById('activeCallModal').style.display = 'flex';
         document.getElementById('activeCallName').innerText = document.getElementById('callerNameDisplay').innerText;
         
-        await setupWebRTC();
+        const rtcSuccess = await setupWebRTC();
+        if(!rtcSuccess) { cleanupCall(); return; }
         const callDoc = db.ref(`calls/${currentCallId}`);
         
         const offerSnap = await callDoc.child('offer').once('value');
@@ -670,19 +713,24 @@
     }
 
     async function setupWebRTC() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast("الصلاحية مرفوضة: المتصفح يتطلب استضافة (HTTPS) للاتصالات", "error");
+            return false;
+        }
         try {
+            peerConnection = new RTCPeerConnection(iceServers);
             localStream = await navigator.mediaDevices.getUserMedia({ video: isVideoCall, audio: true });
             document.getElementById('localVideo').srcObject = localStream;
             if(!isVideoCall) document.getElementById('localVideo').style.display = 'none';
             else document.getElementById('localVideo').style.display = 'block';
             
-            peerConnection = new RTCPeerConnection(iceServers);
             localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
             
             peerConnection.ontrack = event => {
                 document.getElementById('remoteVideo').srcObject = event.streams[0];
             };
-        } catch(e) { showToast("يجب إعطاء صلاحية الكاميرا والمايك", "error"); console.error(e); }
+            return true;
+        } catch(e) { showToast("فشل الوصول للكاميرا والمايكروفون", "error"); console.error(e); return false; }
     }
 
     function toggleMic() {
