@@ -321,16 +321,18 @@
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
                     <input type="number" id="targetMilId" placeholder="الرقم العسكري للفرد" style="margin-bottom:0; flex:1;">
                     <select id="targetGroup" style="margin-bottom:0; flex:1;">
-                        <option value="المجموعة القتالية الأولى">المجموعة القتالية الأولى</option>
-                        <option value="المجموعة القتالية الثانية">المجموعة القتالية الثانية</option>
-                        <option value="المجموعة القتالية الثالثة">المجموعة القتالية الثالثة</option>
-                        <option value="قلم القوة">قلم القوة</option>
-                        <option value="رئيس القسم">مكتب رئيس القسم</option>
+                        <!-- سيتم تعبئتها ديناميكياً -->
                     </select>
                 </div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-primary" onclick="manageGroup('add')" style="flex:1;"><i class="fas fa-plus"></i> إضافة للمجموعة</button>
                     <button class="btn btn-outline" onclick="manageGroup('remove')" style="flex:1; border-color:var(--danger); color:var(--danger);"><i class="fas fa-minus"></i> إزالة</button>
+                </div>
+
+                <h4 style="margin-bottom:10px; font-size:14px; color:var(--text-main); margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;"><i class="fas fa-layer-group"></i> إنشاء مجموعة قتالية جديدة</h4>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="newGroupName" placeholder="اسم المجموعة (مثل: فرقة الاقتحام)" style="margin-bottom:0; flex:1;">
+                    <button class="btn btn-primary" onclick="createNewGroup()" style="flex:1; max-width:120px;"><i class="fas fa-plus"></i> إنشاء</button>
                 </div>
             </div>
         </div>
@@ -460,7 +462,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 
 <script>
     // --- Firebase Initialization ---
@@ -474,7 +475,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const storage = firebase.storage();
 
     // --- Personnel & Admin Database ---
     const adminsList = ["1321", "1408", "1549", "1565", "1587", "1739", "1886", "1825"];
@@ -523,6 +523,7 @@
     let currentChatRef = null;
     let watchId = null;
     let pendingChatFile = null;
+    let officialGroupsList = [];
 
     // --- Utility Functions ---
     function showToast(message, type = 'info') {
@@ -556,6 +557,47 @@
         if (isToday) return `اليوم، ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
         if (isYesterday) return `أمس، ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
         return `${d.toLocaleDateString('ar-AE')} ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
+    }
+
+    // --- Image Compressor ---
+    function compressImageAndGetBase64(file, maxWidth = 800, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.startsWith('image/')) {
+                // For non-images (PDFs, docs), just read as standard Base64
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedBase64);
+                };
+                img.onerror = error => reject(error);
+            };
+            reader.onerror = error => reject(error);
+        });
     }
 
     // --- Auto Login Check ---
@@ -603,7 +645,7 @@
         
         checkAdminPrivileges();
         initRadar(); 
-        checkGroups(); 
+        initOfficialGroups();
         listenForMyRequests();
         listenForRaidAlerts();
     }
@@ -679,19 +721,43 @@
         });
     }
 
-    function acknowledgeRaid() {
-        db.ref('active_alert').once('value').then(snap => {
-            const alertData = snap.val();
-            if(alertData && alertData.active) {
-                db.ref(`alert_acks/${alertData.alertId}/${currentUser}`).set({
-                    time: Date.now(),
-                    name: personnelDB[currentUser].name,
-                    rank: personnelDB[currentUser].rank
-                });
-                document.getElementById('raidAlertModal').style.display = 'none';
-                document.getElementById('sirenSound').pause();
-                document.getElementById('sirenSound').currentTime = 0;
+    // --- Official Groups System ---
+    function initOfficialGroups() {
+        db.ref('official_groups').on('value', snap => {
+            const data = snap.val();
+            if(!data) {
+                const defaults = {
+                    "المجموعة القتالية الأولى": true,
+                    "المجموعة القتالية الثانية": true,
+                    "المجموعة القتالية الثالثة": true,
+                    "قلم القوة": true,
+                    "رئيس القسم": true
+                };
+                db.ref('official_groups').set(defaults);
+                officialGroupsList = Object.keys(defaults);
+            } else {
+                officialGroupsList = Object.keys(data);
             }
+
+            const select = document.getElementById('targetGroup');
+            if(select) {
+                select.innerHTML = "";
+                officialGroupsList.forEach(g => {
+                    select.innerHTML += `<option value="${g}">${g}</option>`;
+                });
+            }
+            
+            if(currentUser) checkGroups();
+        });
+    }
+
+    function createNewGroup() {
+        const name = document.getElementById('newGroupName').value.trim();
+        if(!name) return showToast("الرجاء كتابة اسم المجموعة", "error");
+        
+        db.ref('official_groups/' + name).set(true).then(() => {
+            showToast("تم إنشاء المجموعة الجديدة بنجاح", "success");
+            document.getElementById('newGroupName').value = "";
         });
     }
 
@@ -766,7 +832,7 @@
         });
     }
 
-    // --- Dynamic Groups ---
+    // --- Dynamic Groups Logic ---
     const groupIcons = {
         "المجموعة القتالية الأولى": "fas fa-fighter-jet",
         "المجموعة القتالية الثانية": "fas fa-crosshairs",
@@ -787,15 +853,16 @@
         db.ref('users_groups/' + currentUser).on('value', snap => {
             const acc = snap.val() || {};
             const container = document.getElementById('dynamicGroupsContainer');
+            if(!container) return;
             container.innerHTML = "";
             
             // Admins get access to رئيس القسم by default
             if(adminsList.includes(currentUser)) acc['رئيس القسم'] = true;
 
             for(let groupName in acc) {
-                if(acc[groupName]) {
-                    const icon = groupIcons[groupName] || "fas fa-users";
-                    const color = groupColors[groupName] || "var(--primary)";
+                if(acc[groupName] && officialGroupsList.includes(groupName)) {
+                    const icon = groupIcons[groupName] || "fas fa-users"; // fallback icon for new groups
+                    const color = groupColors[groupName] || "var(--primary)"; // fallback color
                     
                     container.innerHTML += `
                     <button class="btn glass-panel group-btn" style="border-right: 3px solid ${color};" onclick="openChat('${groupName}', '${icon}')">
@@ -819,19 +886,17 @@
         
         if(!details) return showToast("التفاصيل مطلوبة لاستكمال الطلب", "error");
 
-        btn.innerHTML = '<span class="loader"></span> جاري الرفع للقيادة...';
+        btn.innerHTML = '<span class="loader"></span> جاري الإرسال...';
         btn.disabled = true;
 
         try {
-            let fileUrl = null;
+            let fileBase64 = null;
             let fileName = null;
 
             if(fileInp.files.length > 0) {
                 const file = fileInp.files[0];
                 fileName = file.name;
-                const storageRef = storage.ref(`requests_attachments/${Date.now()}_${fileName}`);
-                const snapshot = await storageRef.put(file);
-                fileUrl = await snapshot.ref.getDownloadURL();
+                fileBase64 = await compressImageAndGetBase64(file);
             }
 
             const reqRef = db.ref('all_requests').push();
@@ -843,7 +908,7 @@
                 senderRank: personnelDB[currentUser].rank,
                 type: type,
                 details: details,
-                fileUrl: fileUrl,
+                fileUrl: fileBase64,
                 fileName: fileName,
                 status: 'pending',
                 time: Date.now()
@@ -856,9 +921,9 @@
                 reqId: reqId,
                 senderId: currentUser,
                 text: `📥 طلب إداري جديد:\nالنوع: ${type}\nالتفاصيل: ${details}`,
-                fileUrl: fileUrl,
+                fileUrl: fileBase64,
                 fileName: fileName,
-                fileType: fileUrl ? 'document' : null,
+                fileType: fileBase64 ? 'document' : null,
                 status: 'pending',
                 time: Date.now()
             });
@@ -872,7 +937,7 @@
 
         } catch (error) {
             console.error("Upload error:", error);
-            showToast("فشل الاتصال بالخادم، حاول مجدداً", "error");
+            showToast("تعذر الإرسال، حجم المرفق كبير جداً أو يوجد مشكلة في الاتصال", "error");
         } finally {
             btn.innerHTML = 'إرسال الطلب للقيادة';
             btn.disabled = false;
@@ -985,12 +1050,13 @@
                 
                 if(m.fileUrl) {
                     const fName = m.fileName || 'مرفق';
-                    if(m.fileType === 'image') {
+                    // Check base64 format for video vs image
+                    if(m.fileType === 'image' || m.fileUrl.startsWith('data:image')) {
                         contentHTML += `<div style="margin-top:10px;"><img src="${m.fileUrl}" style="width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.1);" onclick="window.open('${m.fileUrl}', '_blank')"></div>`;
-                    } else if (m.fileType === 'video') {
+                    } else if (m.fileType === 'video' || m.fileUrl.startsWith('data:video')) {
                         contentHTML += `<div style="margin-top:10px;"><video src="${m.fileUrl}" controls style="width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:#000;"></video></div>`;
                     } else {
-                        contentHTML += `<a href="${m.fileUrl}" target="_blank" style="display:flex; align-items:center; gap:12px; margin-top:10px; padding:12px; background:rgba(0,0,0,0.4); border-radius:8px; text-decoration:none; border:1px solid var(--panel-border);">
+                        contentHTML += `<a href="${m.fileUrl}" download="${fName}" style="display:flex; align-items:center; gap:12px; margin-top:10px; padding:12px; background:rgba(0,0,0,0.4); border-radius:8px; text-decoration:none; border:1px solid var(--panel-border);">
                             <i class="fas fa-file-download fa-2x" style="color:var(--primary);"></i>
                             <div style="overflow:hidden;">
                                 <div style="font-size:13px; color:var(--text-main); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${fName}</div>
@@ -1046,7 +1112,7 @@
         sendBtn.disabled = true;
 
         try {
-            let fileUrl = null;
+            let fileBase64 = null;
             let fileName = null;
             let fileType = null;
 
@@ -1056,16 +1122,15 @@
                 else if (pendingChatFile.type.startsWith('video/')) fileType = 'video';
                 else fileType = 'document';
 
-                const storageRef = storage.ref(`chat_attachments/${Date.now()}_${fileName}`);
-                const snapshot = await storageRef.put(pendingChatFile);
-                fileUrl = await snapshot.ref.getDownloadURL();
+                // Compress image or convert file to Base64 directly
+                fileBase64 = await compressImageAndGetBase64(pendingChatFile);
             }
 
             await db.ref(currentChatRef).push({ 
                 senderId: currentUser,
                 time: Date.now(),
                 text: val, 
-                fileUrl: fileUrl,
+                fileUrl: fileBase64,
                 fileName: fileName,
                 fileType: fileType
             });
@@ -1079,7 +1144,7 @@
 
         } catch (error) {
             console.error(error);
-            showToast("تعذر إرسال الرسالة، تحقق من الاتصال", "error");
+            showToast("حجم المرفق كبير جداً أو يوجد مشكلة في الاتصال", "error");
         } finally {
             sendBtn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:-3px;"></i>';
             sendBtn.disabled = false;
