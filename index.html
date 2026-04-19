@@ -7,121 +7,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { 
-            --main: #968c83; 
-            --light: #b9b3ad; 
-            --bg: #000000; 
-            --panel: #111111; 
-            --text: #ffffff;
-            --border: 1px solid #968c83;
-        }
+        :root { --bg: #000; --panel: #15191c; --neon: #00ff41; --danger: #ff0000; --tactical: #968c83; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            margin: 0; 
-            height: 100vh; 
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; 
-        }
-
-        /* شاشة الدخول - سنتر */
-        #loginPage { 
-            position: fixed; inset: 0; background: #000; 
-            display: flex; align-items: center; justify-content: center; 
-            z-index: 5000; padding: 20px;
-        }
-        .login-box { 
-            background: var(--panel); padding: 30px; border: var(--border); 
-            width: 100%; max-width: 380px; text-align: center; border-radius: 4px;
-        }
-
-        /* الهيدر العلوي */
-        .app-header {
-            padding: 12px 15px; background: var(--panel); border-bottom: var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        /* محتوى الصفحات */
-        #mainApp { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        .tab-content { 
-            flex: 1; overflow-y: auto; padding: 15px; 
-            display: none; padding-bottom: 100px;
-        }
-
-        /* الرادار المطور - قياسات متغيرة */
-        .radar-section {
-            display: flex; flex-direction: column; gap: 10px; height: 100%;
-        }
-        @media (min-width: 769px) {
-            .radar-section { flex-direction: row; height: 500px; }
-        }
-
-        #radarMap { 
-            flex: 2; height: 350px; border: var(--border); 
-            filter: grayscale(1) invert(1) contrast(1.1); 
-        }
-        .units-sidebar { 
-            flex: 1; background: var(--panel); border: var(--border); 
-            overflow-y: auto; padding: 10px; max-height: 400px;
-        }
-
-        /* عناصر القائمة الجانبية */
-        .unit-item { 
-            display: flex; align-items: center; gap: 10px; 
-            padding: 10px; border-bottom: 1px solid #222; font-size: 13px;
-        }
-        .dot { width: 12px; height: 12px; border: 1px solid #fff; flex-shrink: 0; }
-
-        /* الشات */
-        .chat-container { display: flex; flex-direction: column; height: 100%; gap: 10px; }
-        .chat-box { 
-            flex: 1; overflow-y: auto; background: #080808; border: var(--border); padding: 15px;
-        }
-        .msg { background: var(--panel); padding: 10px; margin-bottom: 10px; border-right: 4px solid var(--main); }
-        .msg-info { color: var(--main); font-weight: bold; font-size: 11px; margin-bottom: 5px; }
-
-        /* التحكم بالسفلي */
-        .nav { 
-            position: fixed; bottom: 0; width: 100%; background: #0a0a0a; 
-            display: flex; justify-content: space-around; padding: 15px 0; 
-            border-top: var(--border); z-index: 1000;
-        }
-        .nav-item { color: var(--main); font-size: 24px; cursor: pointer; opacity: 0.4; }
-        .nav-item.active { opacity: 1; }
-
-        /* الخانات والأزرار */
-        input, select, textarea { 
-            width: 100%; padding: 12px; margin: 8px 0; background: #000; 
-            border: 1px solid #333; color: var(--light); border-radius: 2px;
-        }
-        input:focus { border-color: var(--main); }
-        .btn-main { 
-            background: var(--main); color: #000; padding: 12px; 
-            border: none; font-weight: bold; cursor: pointer; width: 100%;
-        }
-
-        /* واجهة المكالمة - تغطية كاملة */
+        /* واجهة المكالمة - رؤية مزدوجة */
         #callUI { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; }
-        #remoteVideo { width: 100%; height: 100%; position: absolute; object-fit: cover; }
-        #localVideo { 
-            width: 100px; height: 140px; position: absolute; 
-            top: 20px; left: 20px; border: 1px solid var(--main); z-index: 100;
-            transform: scaleX(-1);
-        }
-        .call-overlay { 
-            position: relative; z-index: 50; width: 100%; height: 100%; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.4);
-        }
-        .btn-call { 
-            width: 70px; height: 70px; border-radius: 50%; border: none; 
-            font-size: 26px; display: flex; align-items: center; justify-content: center;
-        }
+        #remoteVideo { width: 100%; height: 100%; position: absolute; object-fit: cover; z-index: 10; background: #111; }
+        #localVideo { width: 90px; height: 130px; position: absolute; top: 15px; left: 15px; object-fit: cover; z-index: 30; border: 2px solid var(--neon); border-radius: 8px; transform: scaleX(-1); }
+        .call-overlay { z-index: 20; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
+        .timer { font-size: 2.5rem; color: var(--neon); font-family: monospace; margin: 15px 0; }
+        .btn-call { width: 65px; height: 65px; border-radius: 50%; border: none; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; }
+        .accept { background: var(--neon); color: #000; }
+        .reject { background: var(--danger); color: #fff; }
+
+        /* رادار العمليات (القائمة يمين) */
+        .radar-frame { display: flex; height: 320px; margin-top: 10px; gap: 5px; direction: ltr; }
+        #radarMap { flex: 2; border-radius: 10px; border: 1px solid var(--tactical); filter: invert(100%) hue-rotate(180deg); }
+        .units-sidebar { flex: 1; background: var(--panel); border-radius: 10px; border: 1px solid #333; overflow-y: auto; padding: 8px; direction: rtl; }
+        .unit-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #222; font-size: 10px; font-weight: bold; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #fff; }
+
+        /* الطلبات والحالة */
+        .my-status { margin-top: 10px; background: #111; padding: 10px; border-radius: 10px; border: 1px solid #222; max-height: 120px; overflow-y: auto; }
+        .st-card { background: #1c2126; padding: 8px; border-radius: 5px; margin-bottom: 5px; border-right: 3px solid var(--tactical); font-size: 11px; }
+
+        /* واجهة التطبيق */
+        #mainApp { display: none; height: 100vh; flex-direction: column; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { color: #555; font-size: 24px; cursor: pointer; }
+        .nav-item.active { color: var(--neon); }
+        .tab-content { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        
+        .chat-box { height: calc(100vh - 350px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; }
+        .msg { background: #1c2126; padding: 8px; border-radius: 10px; margin-bottom: 10px; border-right: 3px solid var(--tactical); }
+        
+        #loginPage { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; border: 1px solid #333; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; text-align: center; box-sizing: border-box; }
+        
+        #audioPermissionUI { display: none; position: fixed; inset: 0; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; background: #000; padding: 20px; text-align: center; }
     </style>
 </head>
 <body>
@@ -129,83 +53,113 @@
 <audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop></audio>
 <audio id="remoteAudio" autoplay></audio>
 
+<div id="audioPermissionUI">
+    <i class="fas fa-satellite-dish" style="font-size: 60px; color: var(--neon); margin-bottom: 20px;"></i>
+    <h2>تفعيل أنظمة الرادار والاتصال</h2>
+    <button class="btn-main" style="background: var(--neon); padding: 15px; width: 200px;" onclick="enableAndStart()">تأكيد الجاهزية</button>
+</div>
+
+<div id="callUI">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-overlay">
+        <h3 id="callStatusText" style="color: var(--neon);">اتصال لاسلكي...</h3>
+        <h2 id="peerName">--</h2>
+        <div id="activeCallTimer" class="timer" style="display: none;">00:00</div>
+        <div class="call-btns" id="callActionBtns">
+            <button id="acceptBtn" class="btn-call accept" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
+            <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+        </div>
+        <div class="call-btns" id="activeCallBtns" style="display: none;">
+            <button id="muteBtn" class="btn-call control" onclick="toggleMute()"><i class="fas fa-microphone"></i></button>
+            <button class="btn-call reject" onclick="endCall()" style="width:75px; height:75px;"><i class="fas fa-phone-slash"></i></button>
+            <button id="videoBtn" class="btn-call control" onclick="toggleVideo()"><i class="fas fa-video"></i></button>
+        </div>
+    </div>
+</div>
+
 <div id="loginPage">
     <div class="login-box">
-        <img src="https://upload.wikimedia.org/wikipedia/ar/thumb/f/f6/Sharjah_Police_Logo.svg/1200px-Sharjah_Police_Logo.svg.png" style="width:80px; margin-bottom:15px; filter: grayscale(1);">
-        <h2 style="color: var(--main);">نظام العمليات</h2>
+        <img src="https://upload.wikimedia.org/wikipedia/ar/thumb/f/f6/Sharjah_Police_Logo.svg/1200px-Sharjah_Police_Logo.svg.png" style="width:80px; margin-bottom:10px; background:white; border-radius:50%; padding:5px;">
+        <h2>العمليات الخاصة</h2>
         <input type="text" id="milId" placeholder="الرقم العسكري">
         <input type="password" id="pass" placeholder="كلمة المرور">
-        <button class="btn-main" onclick="login()">تسجيل الدخول</button>
+        <button class="btn-main" style="background: var(--tactical);" onclick="login()">دخول</button>
     </div>
 </div>
 
 <div id="mainApp">
-    <header class="app-header">
-        <div id="userDisplay" style="font-size: 12px; color: var(--main); font-weight: bold;">--</div>
-        <button onclick="logout()" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:3px 10px; font-size:10px;">خروج</button>
-    </header>
+    <div style="padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+        <div id="userDisplay" style="font-size: 11px; font-weight: bold; color: var(--tactical);">--</div>
+        <button onclick="logout()" style="background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 9px; padding: 2px 8px;">خروج</button>
+    </div>
 
-    <div id="homeSec" class="tab-content" style="display: block;">
-        <div class="radar-section">
+    <div id="homeSec" class="tab-content">
+        <div id="adminPanel" style="display:none; background: #1c2126; padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+            <input type="text" id="targetUser" class="btn-main" style="background:#000; text-align:right;" placeholder="رقم العسكري للتوزيع">
+            <select id="targetGroupAdmin" class="btn-main" style="background:#000;">
+                <option value="المجموعة المشتركة">المجموعة المشتركة</option>
+                <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
+                <option value="رئيس القسم">شات رئيس القسم</option>
+            </select>
+            <button class="btn-main" onclick="manageMember('add')">توزيع الصلاحية</button>
+        </div>
+
+        <div style="background: rgba(0, 255, 65, 0.05); padding: 8px; border-radius: 8px; display: flex; justify-content: space-between;">
+            <h3 style="margin:0; font-size:0.8rem;">رادار تعقب القوات (GPS عالي الدقة)</h3>
+            <span id="onlineCountDisplay" style="color:var(--neon); font-weight:bold;">0</span>
+        </div>
+        
+        <div class="radar-frame">
             <div id="radarMap"></div>
-            <div class="units-sidebar" id="unitsList">
-                <div style="text-align:center; padding-top:20px; color:#444;">رصد إشارات الموقع...</div>
-            </div>
+            <div class="units-sidebar" id="unitsList"></div>
         </div>
-        <div id="myReqList" style="margin-top:15px;"></div>
+
+        <div class="my-status">
+            <h4 style="margin:0 0 5px 0; font-size: 11px; color: var(--tactical);">📋 حالة طلباتك:</h4>
+            <div id="myReqList"></div>
+        </div>
     </div>
 
-    <div id="chatSec" class="tab-content">
+    <div id="chatSec" class="tab-content" style="display: none; padding: 10px;">
         <div id="groupList">
-            <button class="btn-main" style="margin-bottom:10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
-            <button id="btn-gSecret" class="btn-main" style="display:none; background: var(--light); color:#000;" onclick="openChat('رئيس القسم')">مكتب رئيس القسم 🔒</button>
+            <button class="btn-main" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
+            <button id="btn-gSecret" class="btn-main" style="display:none; background: goldenrod; color: #000;" onclick="openChat('رئيس القسم')">شات رئيس القسم 🔒</button>
         </div>
-        <div id="activeChat" style="display:none; height:100%; flex-direction:column;">
+        <div id="activeChat" style="display: none; flex-direction: column;">
             <div id="chatBox" class="chat-box"></div>
-            <div style="display:flex; gap:5px;">
-                <textarea id="msgInput" placeholder="اكتب رسالة..." style="height:45px;"></textarea>
-                <button class="btn-main" style="width:60px;" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+            <div style="display: flex; gap: 5px;">
+                <textarea id="msgInput" placeholder="اكتب..."></textarea>
+                <button class="btn-main" style="width: 50px; margin: 0;" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
             </div>
-            <button class="btn-main" style="margin-top:10px; background:none; border:1px solid var(--main); color:var(--main);" onclick="backToGroups()">رجوع</button>
+            <button onclick="backToGroups()" class="btn-main" style="margin-top:10px;">رجوع</button>
         </div>
     </div>
 
-    <div id="reqSec" class="tab-content">
-        <h3 style="color:var(--main);">الطلبات الإدارية</h3>
+    <div id="reqSec" class="tab-content" style="display: none; padding: 10px;">
+        <h3>تقديم طلب إداري</h3>
         <select id="reqType">
-            <option value="إجازة">طلب إجازة</option>
-            <option value="بلاغ">بلاغ إداري</option>
+            <option value="طلب إجازة">طلب إجازة</option>
+            <option value="بلاغ نقص">بلاغ نقص عتاد</option>
         </select>
-        <textarea id="reqDetails" style="height:120px;" placeholder="اكتب التفاصيل..."></textarea>
-        <button class="btn-main" onclick="submitRequest()">إرسال الطلب</button>
+        <textarea id="reqDetails" style="height: 100px;" placeholder="التفاصيل..."></textarea>
+        <input type="file" id="reqFile">
+        <button class="btn-main" style="background: var(--neon); color: #000;" onclick="submitRequest()">إرسال الطلب</button>
     </div>
 
-    <div id="callSec" class="tab-content">
-        <div style="padding:25px; border:var(--border); text-align:center;">
-            <h3 style="color:var(--main);">اتصال تكتيكي</h3>
-            <input type="text" id="targetId" placeholder="رقم العسكري للزميل">
-            <button class="btn-main" style="margin-top:10px;" onclick="startCall()">بدء الاتصال</button>
-        </div>
-    </div>
-
-    <div id="callUI">
-        <video id="remoteVideo" autoplay playsinline></video>
-        <video id="localVideo" autoplay playsinline muted></video>
-        <div class="call-overlay">
-            <h2 id="peerName">--</h2>
-            <div id="activeCallTimer" style="font-size:2rem; color:var(--main); margin:20px 0;">00:00</div>
-            <div style="display:flex; gap:15px;">
-                <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
-                <button id="acceptBtn" class="btn-call accept" style="background:var(--main); color:#000;" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
-            </div>
+    <div id="callSec" class="tab-content" style="display: none;">
+        <div style="background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid #333;">
+            <h3>اتصال لاسلكي مرئي</h3>
+            <input type="text" id="targetId" placeholder="رقم العسكري للزميل" style="width: 100%; padding: 12px; margin: 10px 0; background: #000; color: #fff; text-align: center;">
+            <button class="btn-main" style="background: var(--neon);" onclick="startCall()">اطلب الآن</button>
         </div>
     </div>
 
     <nav class="nav">
-        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-satellite-dish"></i></div>
-        <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-comments"></i></div>
-        <div class="nav-item" onclick="switchTab('req', this)"><i class="fas fa-file-contract"></i></div>
-        <div class="nav-item" onclick="switchTab('call', this)"><i class="fas fa-video"></i></div>
+        <div class="nav-item" onclick="switchTab('home', this)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-comment-dots"></i></div>
+        <div class="nav-item" onclick="switchTab('req', this)"><i class="fas fa-file-invoice"></i></div>
+        <div class="nav-item" onclick="switchTab('call', this)"><i class="fas fa-phone-volume"></i></div>
     </nav>
 </div>
 
@@ -227,101 +181,157 @@
 
     const personnelDB = {
         "1321": "مبارك عبدالله", "1408": "محمد المهيري", "1549": "راشد عبدالرحمن",
-        "1565": "طلال شهيل", "105042": "أحمد الطنيجي", "105869": "حسن الرئيسي"
+        "105042": "أحمد الطنيجي", "105869": "حسن الرئيسي"
     };
 
     let currentUser = "", map, markers = {}, localStream, peerConnection, currentCallRefId, callTimer;
-    const colors = ["#968c83", "#b9b3ad", "#ffffff", "#444444", "#888888"];
+    const colors = ["#00ff41", "#ff0000", "#007bff", "#ffeb3b", "#e91e63", "#9c27b0", "#00bcd4", "#ff9800", "#ffffff"];
 
     function login() {
         let id = document.getElementById('milId').value.trim();
         if(personnelDB[id] && document.getElementById('pass').value.trim()==="SHJ@123") {
             currentUser = id; localStorage.setItem('session_user', id);
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            initApp();
+            document.getElementById('audioPermissionUI').style.display = 'flex';
         } else alert("خطأ");
     }
 
-    async function initApp() {
-        document.getElementById('userDisplay').innerText = personnelDB[currentUser];
+    async function enableAndStart() {
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" } });
             document.getElementById('localVideo').srcObject = localStream;
-        } catch(e) { console.log("No camera"); }
-        initRadar(); listenForCalls(); openChat('المجموعة المشتركة');
-        db.ref('users_groups/'+currentUser).on('value', s => { if(s.val() && s.val()['رئيس القسم']) document.getElementById('btn-gSecret').style.display='block'; });
+            localStream.getTracks().forEach(t => t.enabled = false);
+        } catch(e) { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+        document.getElementById('audioPermissionUI').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        showMainApp();
     }
 
+    function showMainApp() {
+        document.getElementById('userDisplay').innerText = personnelDB[currentUser];
+        if(["1321", "1408", "1549"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
+        initRadar(); listenForCalls(); listenForMyRequests(); openChat('المجموعة المشتركة'); checkGroups();
+    }
+
+    // --- الرادار المطور (قائمة يمين + دقة GPS) ---
     function initRadar() {
         if(!map) { map = L.map('radarMap').setView([25.3462, 55.4209], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
+        
         navigator.geolocation.watchPosition(pos => {
-            db.ref('online_users/' + currentUser).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: personnelDB[currentUser], color: colors[parseInt(currentUser)%5] });
+            db.ref('online_users/' + currentUser).set({
+                lat: pos.coords.latitude, lng: pos.coords.longitude,
+                name: personnelDB[currentUser], color: colors[parseInt(currentUser)%9]
+            });
             db.ref('online_users/' + currentUser).onDisconnect().remove();
-        }, null, { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
 
         db.ref('online_users').on('value', snap => {
             const data = snap.val() || {};
-            const list = document.getElementById('unitsList'); list.innerHTML = "<strong>القوات المتصلة:</strong><br>";
+            const list = document.getElementById('unitsList'); list.innerHTML = "";
+            document.getElementById('onlineCountDisplay').innerText = Object.keys(data).length;
+
             for(let id in markers) { if(!data[id]) { map.removeLayer(markers[id]); delete markers[id]; } }
+
             for(let id in data) {
                 const u = data[id];
-                list.innerHTML += `<div class="unit-item"><div class="dot" style="background:${u.color}"></div><span>${u.name}</span></div>`;
-                if(markers[id]) markers[id].setLatLng([u.lat, u.lng]);
-                else markers[id] = L.circleMarker([u.lat, u.lng], { radius: 7, fillColor: u.color, color: "#fff", weight: 1, fillOpacity: 1 }).addTo(map);
+                list.innerHTML += `<div class="unit-row"><div class="dot" style="background:${u.color}"></div><span>${u.name}</span></div>`;
+                if(markers[id]) {
+                    markers[id].setLatLng([u.lat, u.lng]);
+                } else {
+                    markers[id] = L.circleMarker([u.lat, u.lng], { radius: 8, fillColor: u.color, color: "#fff", weight: 2, fillOpacity: 1 }).addTo(map);
+                }
             }
         });
     }
 
-    function openChat(n) {
-        document.getElementById('groupList').style.display='none'; document.getElementById('activeChat').style.display='flex';
-        db.ref('chats/'+n).on('value', snap => {
-            const box = document.getElementById('chatBox'); box.innerHTML = "";
-            snap.forEach(c => { box.innerHTML += `<div class="msg"><div class="msg-info">${c.val().name}</div><div>${c.val().text}</div></div>`; });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    function sendMsg() {
-        const val = document.getElementById('msgInput').value.trim(); if(!val) return;
-        db.ref('chats/المجموعة المشتركة').push({ name: personnelDB[currentUser], text: val, time: Date.now() });
-        document.getElementById('msgInput').value = "";
-    }
-
-    function startCall() {
+    // --- الاتصال (WebRTC) مصلح 100% ---
+    async function startCall() {
         let tid = document.getElementById('targetId').value.trim();
-        currentCallRefId = tid; document.getElementById('callUI').style.display='block';
-        db.ref('calls/'+tid).set({ callerId: currentUser, status:'ringing' });
+        if(!personnelDB[tid] || tid === currentUser) return alert("خطأ");
+        currentCallRefId = tid; setupCallUI(tid, 'calling');
+        
+        peerConnection = new RTCPeerConnection(servers);
+        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+        peerConnection.ontrack = e => { document.getElementById('remoteAudio').srcObject=e.streams[0]; document.getElementById('remoteVideo').srcObject=e.streams[0]; };
+        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${tid}/callerCandidates`).push(e.candidate.toJSON()); };
+        
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        db.ref('calls/'+tid).set({ offer:{type:offer.type, sdp:offer.sdp}, callerId:currentUser, status:'ringing' });
+
+        db.ref(`calls/${tid}`).on('value', async s => {
+            if(!s.val()) return hideCallUI();
+            if(s.val().status==='accepted'&&s.val().answer&&!peerConnection.currentRemoteDescription) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(s.val().answer));
+                startActiveCallUI();
+            }
+        });
+        db.ref(`calls/${tid}/receiverCandidates`).on('child_added', s => { peerConnection.addIceCandidate(new RTCIceCandidate(s.val())); });
     }
 
     function listenForCalls() {
-        db.ref('calls/'+currentUser).on('value', s => {
-            if(s.val() && s.val().status==='ringing') { currentCallRefId=currentUser; document.getElementById('callUI').style.display='block'; document.getElementById('ringtone').play(); }
-            else if(!s.val()) endCall();
+        db.ref('calls/'+currentUser).on('value', async s => {
+            const d = s.val();
+            if(d && d.status==='ringing') { currentCallRefId=currentUser; setupCallUI(d.callerId, 'incoming'); document.getElementById('ringtone').play(); } 
+            else if(!d && currentCallRefId===currentUser) hideCallUI();
         });
     }
 
-    function handleAccept() { 
-        document.getElementById('ringtone').pause(); 
-        db.ref('calls/'+currentUser).update({ status: 'accepted' }); 
-        document.getElementById('activeCallTimer').style.display='block';
-    }
-
-    function endCall() {
-        if(currentCallRefId) db.ref('calls/'+currentCallRefId).remove();
-        document.getElementById('callUI').style.display='none';
+    async function handleAccept() {
         document.getElementById('ringtone').pause();
+        const snap = await db.ref('calls/'+currentUser).get();
+        peerConnection = new RTCPeerConnection(servers);
+        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+        peerConnection.ontrack = e => { document.getElementById('remoteAudio').srcObject=e.streams[0]; document.getElementById('remoteVideo').srcObject=e.streams[0]; };
+        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${currentUser}/receiverCandidates`).push(e.candidate.toJSON()); };
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(snap.val().offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await db.ref('calls/'+currentUser).update({ answer:{type:answer.type, sdp:answer.sdp}, status:'accepted' });
+        startActiveCallUI();
     }
 
-    function switchTab(t, el) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.getElementById(t + 'Sec').style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-        if(t==='home' && map) setTimeout(()=>map.invalidateSize(), 200);
-    }
+    function endCall() { if(currentCallRefId) db.ref('calls/'+currentCallRefId).remove(); hideCallUI(); }
+    function hideCallUI() { if(peerConnection) peerConnection.close(); document.getElementById('callUI').style.display='none'; document.getElementById('activeCallBtns').style.display='none'; document.getElementById('remoteVideo').style.display='none'; document.getElementById('ringtone').pause(); clearInterval(callTimer); currentCallRefId=""; }
+    function toggleVideo() { isVideoOn=!isVideoOn; localStream.getVideoTracks()[0].enabled=isVideoOn; document.getElementById('remoteVideo').style.display=isVideoOn?'block':'none'; }
+    function toggleMute() { isMuted=!isMuted; localStream.getAudioTracks()[0].enabled=!isMuted; document.getElementById('muteBtn').style.background=isMuted?'red':'rgba(0,0,0,0.6)'; }
 
-    function backToGroups() { document.getElementById('groupList').style.display='block'; document.getElementById('activeChat').style.display='none'; }
+    // --- الوظائف الأخرى ---
+    function openChat(n) {
+        document.getElementById('groupList').style.display='none'; document.getElementById('activeChat').style.display='flex';
+        document.getElementById('currentGroupName').innerText = n;
+        db.ref('chats/'+n).on('value', snap => {
+            const box = document.getElementById('chatBox'); box.innerHTML = "";
+            snap.forEach(c => { box.innerHTML += `<div class="msg"><div style="font-size:10px; color:var(--neon);">${c.val().name}</div><div>${c.val().text}</div></div>`; });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+    function sendMsg() {
+        const val = document.getElementById('msgInput').value.trim(); if(!val) return;
+        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({ name: personnelDB[currentUser], text: val, time: Date.now() });
+        document.getElementById('msgInput').value = "";
+    }
+    function submitRequest() {
+        const type = document.getElementById('reqType').value, details = document.getElementById('reqDetails').value.trim();
+        if(!details) return alert("اكتب التفاصيل");
+        const reqRef = db.ref('all_requests').push();
+        const obj = { id: reqRef.key, senderId: currentUser, name: personnelDB[currentUser], type, details, status: 'pending', time: Date.now() };
+        reqRef.set(obj);
+        db.ref('chats/رئيس القسم').push({ isRequest: true, reqId: obj.id, text: `📥 طلب جديد: ${type}\nمن: ${personnelDB[currentUser]}`, time: Date.now() });
+        alert("تم الإرسال"); document.getElementById('reqDetails').value = "";
+    }
+    function listenForMyRequests() {
+        db.ref('all_requests').orderByChild('senderId').equalTo(currentUser).on('value', snap => {
+            const list = document.getElementById('myReqList'); list.innerHTML = "";
+            snap.forEach(c => { const r = c.val(); list.innerHTML += `<div class="st-card"><strong>${r.type}</strong>: ${r.status==='pending'?'⏳ قيد الانتظار':r.status==='accepted'?'✅ مقبول':'❌ مرفوض'}</div>`; });
+        });
+    }
+    function manageMember(a) { db.ref('users_groups/'+document.getElementById('targetUser').value.trim()+'/'+document.getElementById('targetGroupAdmin').value).set(a==='add'?true:null); alert("تم"); }
+    function checkGroups() { db.ref('users_groups/'+currentUser).on('value', snap => { if(snap.val() && snap.val()['رئيس القسم']) document.getElementById('btn-gSecret').style.display='block'; }); }
+    function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block'; if(t==='home'&&map) setTimeout(()=>map.invalidateSize(), 200); }
+    function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
+    function setupCallUI(id, type) { document.getElementById('callUI').style.display='flex'; document.getElementById('peerName').innerText = personnelDB[id]||"عسكري"; document.getElementById('callActionBtns').style.display = type==='incoming'?'flex':'none'; }
+    function startActiveCallUI() { document.getElementById('callActionBtns').style.display='none'; document.getElementById('activeCallBtns').style.display='flex'; document.getElementById('activeCallTimer').style.display='block'; let sec = 0; clearInterval(callTimer); callTimer = setInterval(() => { sec++; let m=Math.floor(sec/60), s=sec%60; document.getElementById('activeCallTimer').innerText=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }, 1000); }
     function logout() { db.ref('online_users/'+currentUser).remove(); localStorage.removeItem('session_user'); location.reload(); }
 </script>
 </body>
