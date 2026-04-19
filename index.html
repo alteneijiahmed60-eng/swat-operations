@@ -15,86 +15,50 @@
         #remoteVideo { width: 100%; height: 100%; position: absolute; object-fit: cover; z-index: 10; background: #111; }
         #localVideo { width: 90px; height: 130px; position: absolute; top: 10px; right: 10px; object-fit: cover; z-index: 30; border: 2px solid var(--neon); border-radius: 8px; transform: scaleX(-1); }
         .call-overlay { z-index: 20; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
-        .timer { font-size: 2.2rem; color: var(--neon); font-family: monospace; margin: 15px 0; }
-        .btn-call { width: 65px; height: 65px; border-radius: 50%; border: none; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; }
-        .accept { background: var(--neon); color: #000; }
-        .reject { background: var(--danger); color: #fff; }
 
-        /* الرادار المطور (قائمة يمين) */
+        /* الرادار المطور */
         .radar-container { display: flex; height: 320px; margin-top: 10px; gap: 5px; direction: ltr; }
         #radarMap { flex: 2.5; border-radius: 10px; border: 1px solid var(--tactical); filter: invert(100%) hue-rotate(180deg); }
         .units-sidebar { flex: 1; background: var(--panel); border-radius: 10px; border: 1px solid #333; overflow-y: auto; padding: 8px; direction: rtl; }
         .unit-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #222; font-size: 10px; font-weight: bold; }
         .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #fff; }
 
-        /* الطلبات في الصفحة الرئيسية */
-        .my-requests { margin-top: 15px; background: #111; padding: 10px; border-radius: 10px; border: 1px solid #222; max-height: 180px; overflow-y: auto; }
-        .req-status-card { background: #1c2126; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid var(--tactical); font-size: 12px; }
-        .status-wait { color: var(--wait); }
-        .status-ok { color: var(--neon); }
-        .status-no { color: var(--danger); }
-
-        /* واجهة الشات والطلبات */
+        /* الشات الاحترافي */
         #mainApp { display: none; height: 100vh; flex-direction: column; }
         .nav { position: fixed; bottom: 0; width: 100%; background: var(--panel); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 100; }
         .tab-content { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 80px; }
-        .chat-box { height: calc(100vh - 350px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; }
-        .msg { background: #1c2126; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-right: 3px solid var(--tactical); }
         
-        /* أزرار رئيس القسم والادمن */
-        .admin-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-action { flex: 1; padding: 8px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .chat-box { height: calc(100vh - 350px); overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { display: flex; gap: 10px; align-items: flex-start; max-width: 95%; }
+        .msg-content { background: #1c2126; padding: 10px; border-radius: 12px; border-right: 3px solid var(--tactical); position: relative; width: 100%; }
+        .msg-header { font-size: 11px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .msg-sender-name { color: var(--neon); font-weight: bold; }
+        .msg-text { font-size: 14px; white-space: pre-wrap; line-height: 1.4; color: #eee; }
+        .msg-time { font-size: 8px; color: #555; text-align: left; margin-top: 5px; }
         
-        .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .chat-media { max-width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid #333; }
+        .chat-controls-wrapper { background: #0b0e11; padding: 8px; border-radius: 12px; border: 1px solid #333; }
+        .chat-toolbar { display: flex; gap: 15px; padding: 5px 10px; border-bottom: 1px solid #222; margin-bottom: 5px; }
+        .chat-toolbar i { color: var(--tactical); cursor: pointer; font-size: 18px; }
+        #msgInput { flex: 1; background: #15191c; border: 1px solid #444; color: #fff; border-radius: 8px; padding: 10px; resize: none; min-height: 40px; font-family: inherit; }
+
         #loginPage { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .login-box { background: var(--panel); padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
-        
-        #audioPermissionUI, #raidAlertUI { display: none; position: fixed; inset: 0; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; background: #000; text-align: center; padding: 20px; }
+        .login-box { background: var(--panel); padding: 30px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; border: 1px solid #333; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0b0e11; border: 1px solid #444; color: #fff; border-radius: 5px; text-align: center; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 12px; background: var(--tactical); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <audio id="ringtone" src="https://www.soundjay.com/phone/sounds/phone-calling-1.mp3" loop></audio>
-<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop></audio>
 <audio id="remoteAudio" autoplay></audio>
-
-<div id="audioPermissionUI">
-    <i class="fas fa-satellite-dish" style="font-size: 60px; color: var(--neon); margin-bottom: 20px;"></i>
-    <h2>تفعيل أنظمة الرادار والاتصال</h2>
-    <button class="btn-main" style="background: var(--neon); padding: 15px; width: 200px;" onclick="enableAndStart()">تأكيد الجاهزية</button>
-</div>
-
-<div id="raidAlertUI" style="background:rgba(255,0,0,0.95);">
-    <i class="fas fa-exclamation-triangle" style="font-size: 80px; color: white;"></i>
-    <h1>نداء مداهمة!</h1>
-    <h3 id="raidAlertSender"></h3>
-    <button class="btn-main" style="background:#000; color:#fff; width:150px;" onclick="dismissRaidAlert()">علم</button>
-</div>
-
-<div id="callUI">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo" autoplay playsinline muted></video>
-    <div class="call-overlay">
-        <h3 id="callStatusText" style="color: var(--neon);">اتصال لاسلكي...</h3>
-        <h2 id="peerName">--</h2>
-        <div id="activeCallTimer" class="timer" style="display: none;">00:00</div>
-        <div class="call-btns" id="callActionBtns">
-            <button id="acceptBtn" class="btn-call accept" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
-            <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
-        </div>
-        <div class="call-btns" id="activeCallBtns" style="display: none;">
-            <button class="btn-call reject" onclick="endCall()" style="width:75px; height:75px;"><i class="fas fa-phone-slash"></i></button>
-            <button id="videoBtn" class="btn-call control" style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid #fff; margin-left:10px;" onclick="toggleVideo()"><i class="fas fa-video"></i></button>
-        </div>
-    </div>
-</div>
 
 <div id="loginPage">
     <div class="login-box">
         <img src="https://upload.wikimedia.org/wikipedia/ar/thumb/f/f6/Sharjah_Police_Logo.svg/1200px-Sharjah_Police_Logo.svg.png" style="width:80px; margin-bottom:10px; background:white; border-radius:50%; padding:5px;">
-        <h2 style="color: #fff;">العمليات الخاصة</h2>
-        <input type="text" id="milId" placeholder="الرقم العسكري">
+        <h2>العمليات الخاصة</h2>
+        <input type="text" id="milId" list="personnelList" placeholder="الرقم العسكري">
+        <datalist id="personnelList"></datalist>
         <input type="password" id="pass" placeholder="كلمة المرور">
         <button class="btn-main" onclick="login()">دخول</button>
     </div>
@@ -102,86 +66,74 @@
 
 <div id="mainApp">
     <div style="padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-        <div id="userDisplay" style="font-size: 11px; font-weight: bold;">--</div>
+        <div id="userDisplay" style="font-size: 11px; font-weight: bold; color: var(--tactical);">--</div>
         <button onclick="logout()" style="background: none; border: 1px solid var(--danger); color: var(--danger); font-size: 9px; padding: 2px 8px;">خروج</button>
     </div>
 
     <div id="homeSec" class="tab-content">
-        <div id="adminPanel" style="display:none; background: #1c2126; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-right: 4px solid var(--neon);">
-            <h5 style="margin:0 0 8px 0; color: var(--neon);">لوحة قيادة العمليات</h5>
-            <input type="text" id="targetUser" class="btn-main" style="background:#000; text-align:right; color:#fff;" placeholder="رقم العسكري">
-            <select id="targetGroupAdmin" class="btn-main" style="background:#000; color:#fff;">
-                <option value="المجموعة المشتركة">المجموعة المشتركة</option>
-                <option value="المجموعة القتالية الأولى">القتالية الأولى</option>
-                <option value="رئيس القسم">شات رئيس القسم</option>
-            </select>
-            <div style="display: flex; gap: 5px;">
-                <button class="btn-main" style="flex: 1;" onclick="manageMember('add')">توزيع</button>
-                <button class="btn-main" style="flex: 1; background: var(--danger); color: #fff;" onclick="manageMember('remove')">إزالة</button>
-            </div>
+        <div id="adminPanel" style="display:none; background: #1c2126; padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+            <input type="text" id="targetUser" class="btn-main" style="background:#000; text-align:right;" placeholder="رقم العسكري">
             <button class="btn-main" style="background: var(--danger); color: #fff;" onclick="triggerRaid()">نداء مداهمة</button>
-            <button class="btn-main" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 11px;" onclick="clearChat()">مسح شات المجموعة</button>
         </div>
-
         <div style="background: rgba(0, 255, 65, 0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between;">
-            <h3 style="margin:0; font-size:0.8rem;">رادار تعقب القوات لايف</h3>
+            <h3 style="margin:0; font-size:0.8rem;">رادار القوات لايف</h3>
             <span id="onlineCountDisplay" style="color:var(--neon); font-weight:bold;">0</span>
         </div>
-        
         <div class="radar-container">
             <div id="radarMap"></div>
             <div class="units-sidebar" id="unitsList"></div>
-        </div>
-
-        <div class="my-requests">
-            <h4 style="margin:0 0 10px 0; font-size: 12px; color: var(--tactical);">📋 حالة طلباتك الإدارية:</h4>
-            <div id="myReqList"></div>
         </div>
     </div>
 
     <div id="chatSec" class="tab-content" style="display: none; padding: 10px;">
         <div id="groupList">
             <button class="btn-main" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
-            <button id="btn-gSecret" class="btn-main" style="display:none; background: goldenrod; color: black;" onclick="openChat('رئيس القسم')">شات رئيس القسم 🔒</button>
+            <button id="btn-gSecret" class="btn-main" style="display:none; background: goldenrod; color: #000;" onclick="openChat('رئيس القسم')">شات رئيس القسم 🔒</button>
         </div>
         <div id="activeChat" style="display: none; flex-direction: column;">
             <div id="chatBox" class="chat-box"></div>
-            <div style="display: flex; gap: 5px;">
-                <textarea id="msgInput" placeholder="اكتب..."></textarea>
-                <button class="btn-main" style="width: 50px; margin: 0;" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+            <div class="chat-controls-wrapper">
+                <div class="chat-toolbar">
+                    <label for="mediaFile"><i class="fas fa-camera"></i></label>
+                    <label for="mediaVideo"><i class="fas fa-video"></i></label>
+                    <input type="file" id="mediaFile" hidden accept="image/*" onchange="uploadMedia(this, 'image')">
+                    <input type="file" id="mediaVideo" hidden accept="video/*" onchange="uploadMedia(this, 'video')">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <textarea id="msgInput" placeholder="اكتب..."></textarea>
+                    <button class="btn-main" style="width: 50px; margin: 0;" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
             <button onclick="backToGroups()" class="btn-main" style="margin-top:10px;">رجوع</button>
         </div>
     </div>
 
-    <div id="reqSec" class="tab-content" style="display: none;">
-        <h3>تقديم طلب إداري</h3>
-        <div style="background: #1c2126; padding: 15px; border-radius: 10px;">
-            <select id="reqType">
-                <option value="طلب إجازة سنوية">طلب إجازة سنوية</option>
-                <option value="طلب ظرف طارئ">طلب ظرف طارئ</option>
-                <option value="بلاغ نقص عتاد">بلاغ نقص عتاد</option>
-            </select>
-            <textarea id="reqDetails" placeholder="تفاصيل الطلب..." style="height: 100px;"></textarea>
-            <input type="file" id="reqFile" accept="image/*,.pdf">
-            <button class="btn-main" style="background: var(--neon); color: black; margin-top: 10px;" onclick="submitRequest()">إرسال الطلب</button>
-        </div>
-    </div>
-
     <div id="callSec" class="tab-content" style="display: none;">
-        <div style="background: var(--panel); padding: 25px; border-radius: 15px; border: 1px solid #333; text-align: center;">
+        <div style="background: var(--panel); padding: 25px; border-radius: 15px; text-align: center;">
             <h3 style="color: var(--neon);">اتصال لاسلكي مرئي</h3>
-            <input type="text" id="targetId" placeholder="رقم العسكري للزميل" style="width: 100%; padding: 15px; margin: 15px 0; background: #000; color: #fff; border-radius: 10px; text-align: center;">
-            <button class="btn-main" style="background: var(--neon); padding: 15px;" onclick="startCall()">اطلب الآن</button>
+            <input type="text" id="targetId" placeholder="رقم العسكري للزميل">
+            <button class="btn-main" style="background: var(--neon);" onclick="startCall()">اطلب الآن</button>
         </div>
     </div>
 
     <nav class="nav">
         <div class="nav-item" onclick="switchTab('home', this)"><i class="fas fa-home"></i></div>
         <div class="nav-item" onclick="switchTab('chat', this)"><i class="fas fa-comment-dots"></i></div>
-        <div class="nav-item" onclick="switchTab('req', this)"><i class="fas fa-file-invoice"></i></div>
         <div class="nav-item" onclick="switchTab('call', this)"><i class="fas fa-phone-volume"></i></div>
     </nav>
+</div>
+
+<div id="callUI">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-overlay">
+        <h2 id="peerName">--</h2>
+        <div id="activeCallTimer" class="timer" style="display:none;">00:00</div>
+        <div class="call-btns" id="callActionBtns">
+            <button id="acceptBtn" class="btn-call accept" onclick="handleAccept()"><i class="fas fa-phone"></i></button>
+            <button class="btn-call reject" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -200,46 +152,113 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // القائمة الكاملة لجميع الأفراد (60+ اسم)
     const personnelDB = {
-        "1321": "مبارك محمد عبدالله", "1408": "محمد عبدالله المهيري", "1549": "راشد احمد عبدالرحمن",
-        "1565": "طلال حسن شهيل", "105042": "أحمد حمدان الطنيجي", "105869": "حسن علي الرئيسي"
+        "1321": { rank: "رائد", name: "مبارك محمد ابراهيم عبدالله" },
+        "1408": { rank: "رائد", name: "محمد عبدالله علي عبيد المهيري" },
+        "1549": { rank: "نقيب", name: "راشد احمد محمد عبدالرحمن" },
+        "1565": { rank: "نقيب", name: "طلال حسن عبدالله شهيل" },
+        "1587": { rank: "نقيب", name: "محمد علي صقر يوسف الدرمكي" },
+        "1739": { rank: "ملازم أول", name: "سالم راشد سالم عبيد الخيال" },
+        "1886": { rank: "ملازم", name: "صالح عبيد حديد عبيد غريب خميس" },
+        "1825": { rank: "ملازم", name: "محمد سعيد محمد النقبي" },
+        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله درويش ال علي" },
+        "100270": { rank: "مساعد ضابط", name: "حسن علي محمد علي سعيد النقبي" },
+        "100342": { rank: "مساعد ضابط", name: "خالد حسين عبدالله صالح الحوسني" },
+        "100576": { rank: "مساعد ضابط", name: "شاهين حسن شاهين محمد" },
+        "100659": { rank: "مساعد ضابط", name: "عمر محمد حسن عباس" },
+        "100747": { rank: "مساعد ضابط", name: "احمد محمد خلف محمد صالح" },
+        "100758": { rank: "مساعد ضابط", name: "محمد خلفان راشد عبيد" },
+        "100836": { rank: "مساعد ضابط", name: "حمدان عبدالله هلال سند" },
+        "100945": { rank: "مساعد ضابط", name: "ابراهيم هيكل محمد كرم" },
+        "100946": { rank: "مساعد ضابط", name: "سعيد محمد مصطفى محمد" },
+        "100986": { rank: "مساعد ضابط", name: "عمران راشد عبدالسلام محمد معيني" },
+        "100999": { rank: "مساعد ضابط", name: "ابراهيم خليفه راشد اليماني" },
+        "101040": { rank: "مساعد ضابط", name: "فهد محمد مراد احمد المازمي" },
+        "101059": { rank: "مساعد ضابط", name: "حسين ابراهيم علي محمد الحوسني" },
+        "101171": { rank: "مساعد ضابط", name: "حمد حسن سالمين شهداد" },
+        "101252": { rank: "مساعد أول", name: "احمد مختار رضا علي الملا" },
+        "101291": { rank: "مساعد أول", name: "عبدالله معتوق خلف محمد الحوسني" },
+        "101308": { rank: "مساعد أول", name: "حميد حسن محمد الدرمكي" },
+        "101313": { rank: "مساعد أول", name: "عمر محمد صالح محمد علي النقبي" },
+        "101333": { rank: "مساعد أول", name: "فيصل يوسف كريم عيسى المازمي" },
+        "101341": { rank: "مساعد أول", name: "يوسف مال الله عبدالله محمد" },
+        "101512": { rank: "مساعد", name: "محمد راشد جمعه راشد بن ركن ال علي" },
+        "101598": { rank: "مساعد", name: "أحمد اسماعيل أحمد علي محمد عبدولي" },
+        "101604": { rank: "مساعد", name: "ابراهيم علي عبدالسلام محمد احمد" },
+        "101650": { rank: "مساعد", name: "خميس احمد خميس الملص ال علي" },
+        "101784": { rank: "مساعد", name: "حمد محمد غلوم محمد جمعه" },
+        "101787": { rank: "مساعد", name: "خليفه خالد علي محمد ال علي" },
+        "101932": { rank: "مساعد", name: "ابراهيم عيسى عبدالقادر علي" },
+        "102020": { rank: "رقيب أول", name: "عبدالله حسين خليل الحوسني" },
+        "102103": { rank: "رقيب أول", name: "محمد أحمد دادالله حاجي البلوشي" },
+        "102196": { rank: "رقيب أول", name: "عبدالله راشد عبيد راشد الـنداس" },
+        "102606": { rank: "عريف أول", name: "سالم عبد الله راشد بوالطش الشامسي" },
+        "102662": { rank: "عريف أول", name: "عبدالرحمن ثابت هلال سعيد الضو" },
+        "102854": { rank: "عريف أول", name: "عبدالله سرور مسعود سرور الياسي" },
+        "102955": { rank: "عريف أول", name: "محمد عبدالله علي جمعه صقر" },
+        "103034": { rank: "عريف أول", name: "سعود ايوب عباس علي المازمي" },
+        "103392": { rank: "عريف أول", name: "عبدالله حسن شاهين محمد المازمي" },
+        "103152": { rank: "عريف أول", name: "محمد درويش عيسى محمد" },
+        "103493": { rank: "عريف", name: "سيف حسين غانم عبيد روباري" },
+        "103553": { rank: "عريف", name: "احمد محمد عيسى كرم المازمي" },
+        "103590": { rank: "عريف", name: "غريب سالم علي غريب المازمي" },
+        "103599": { rank: "عريف", name: "خالد حسن راشد شهرين النقبي" },
+        "103604": { rank: "عريف", name: "عبيد محمد طارش سالم الكعبي" },
+        "103615": { rank: "عريف", name: "عادل ابراهيم حسن ابراهيم ال علي" },
+        "103634": { rank: "عريف", name: "محمد عبدالله محمد الدبيسي الظهوري" },
+        "103635": { rank: "عريف", name: "محمد عبدالله ابراهيم عبدالله الهوتي" },
+        "103636": { rank: "عريف", name: "سهيل سالم محمد خميس الكتبي" },
+        "103644": { rank: "عريف", name: "حميد سميح نوبي محمد البلوشي" },
+        "103774": { rank: "عريف", name: "محمد احمد محمد سليمان ال علي" },
+        "103777": { rank: "عريف", name: "سالم احمد عبدالله jاسم الحمادي" },
+        "103778": { rank: "عريف", name: "محمد يونس محمد عبدالله المازمي" },
+        "103779": { rank: "عريف", name: "سالم عبدالله محمد بن بحير المهيري" },
+        "103787": { rank: "عريف", name: "سالم ثاني مبارك الجلاف المهيري" },
+        "104317": { rank: "شرطي أول", name: "محمد طلعان نوبي محمد البلوشي" },
+        "104334": { rank: "شرطي أول", name: "محمد جاسم مطر كرمك البلوشي" },
+        "104372": { rank: "شرطي أول", name: "ناصر عبدالله سليمان علي البلوشي" },
+        "104803": { rank: "شرطي أول", name: "راشد ناصر الزري النبهاني" },
+        "104528": { rank: "شرطي أول", name: "خالد راشد عبدالله بن غرير الكتبي" },
+        "105042": { rank: "شرطي أول", name: "أحمد حمدان راشد الطنيجي" },
+        "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
+        "105364": { rank: "شرطي أول", name: "فهد سعيد كشيش الشحي" },
+        "105869": { rank: "شرطي أول", name: "حسن علي درويش محمد الرئيسي" }
     };
 
-    let currentUser = "", map, markers = {}, localStream, peerConnection, currentCallRefId, callTimer;
+    let currentUser = "", map, markers = {}, localStream, peerConnection, currentCallRefId;
     const colors = ["#00ff41", "#ff0000", "#007bff", "#ffeb3b", "#e91e63", "#9c27b0", "#00bcd4", "#ff9800", "#ffffff"];
 
+    window.onload = function() {
+        const loginList = document.getElementById('personnelList');
+        Object.keys(personnelDB).sort().forEach(id => {
+            loginList.appendChild(new Option(id + " - " + personnelDB[id].name, id));
+        });
+        let saved = localStorage.getItem('session_user');
+        if (saved && personnelDB[saved]) { currentUser = saved; document.getElementById('loginPage').style.display = 'none'; showMainApp(); }
+    };
+
     function login() {
-        let id = document.getElementById('milId').value.trim();
+        let id = document.getElementById('milId').value.trim().split(' ')[0];
         if(personnelDB[id] && document.getElementById('pass').value.trim()==="SHJ@123") {
             currentUser = id; localStorage.setItem('session_user', id);
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('audioPermissionUI').style.display = 'flex';
+            document.getElementById('loginPage').style.display = 'none'; showMainApp();
         } else alert("خطأ");
     }
 
-    async function enableAndStart() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            document.getElementById('localVideo').srcObject = localStream;
-            localStream.getTracks().forEach(t => t.enabled = false);
-        } catch(e) { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-        document.getElementById('audioPermissionUI').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'flex';
-        showMainApp();
-    }
-
-    function showMainApp() {
-        document.getElementById('userDisplay').innerText = personnelDB[currentUser];
+    async function showMainApp() {
+        document.getElementById('userDisplay').innerText = `${personnelDB[currentUser].rank} / ${personnelDB[currentUser].name}`;
         if(["1321", "1408", "1549"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
-        initRadar(); listenForCalls(); listenForMyRequests(); openChat('المجموعة المشتركة'); checkGroups();
+        initRadar(); listenForCalls(); openChat('المجموعة المشتركة'); checkGroups();
+        try { localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:true }); document.getElementById('localVideo').srcObject = localStream; } catch(e){}
     }
 
     function initRadar() {
         if(!map) { map = L.map('radarMap').setView([25.3462, 55.4209], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
         navigator.geolocation.watchPosition(pos => {
-            db.ref('online_users/' + currentUser).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: personnelDB[currentUser], color: colors[parseInt(currentUser)%9] });
+            db.ref('online_users/' + currentUser).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: personnelDB[currentUser].name, color: colors[parseInt(currentUser)%9] });
             db.ref('online_users/' + currentUser).onDisconnect().remove();
-        }, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+        }, null, { enableHighAccuracy: true });
 
         db.ref('online_users').on('value', snap => {
             const data = snap.val() || {};
@@ -255,90 +274,45 @@
         });
     }
 
-    // --- نظام الاتصال (مستقل وتزامني) ---
-    async function startCall() {
-        let tid = document.getElementById('targetId').value.trim();
-        if(!personnelDB[tid] || tid === currentUser) return alert("رقم خاطئ");
-        currentCallRefId = tid; setupCallUI(tid, 'calling');
-        peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }] });
-        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-        peerConnection.ontrack = e => { document.getElementById('remoteAudio').srcObject=e.streams[0]; document.getElementById('remoteVideo').srcObject=e.streams[0]; };
-        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${tid}/callerCandidates`).push(e.candidate.toJSON()); };
-        const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer);
-        db.ref('calls/'+tid).set({ offer:{type:offer.type, sdp:offer.sdp}, callerId:currentUser, status:'ringing' });
-        db.ref(`calls/${tid}`).on('value', async s => {
-            if(!s.val()) return hideCallUI();
-            if(s.val().status==='accepted'&&s.val().answer&&!peerConnection.currentRemoteDescription) {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(s.val().answer));
-                startActiveCallUI();
-            }
-        });
-        db.ref(`calls/${tid}/receiverCandidates`).on('child_added', s => { peerConnection.addIceCandidate(new RTCIceCandidate(s.val())); });
-    }
-
-    function listenForCalls() {
-        db.ref('calls/'+currentUser).on('value', async s => {
-            const d = s.val();
-            if(d && d.status==='ringing') { currentCallRefId=currentUser; setupCallUI(d.callerId, 'incoming'); document.getElementById('ringtone').play(); } 
-            else if(!d && currentCallRefId===currentUser) hideCallUI();
-        });
-    }
-
-    async function handleAccept() {
-        document.getElementById('ringtone').pause();
-        const snap = await db.ref('calls/'+currentUser).get();
-        peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }] });
-        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-        peerConnection.ontrack = e => { document.getElementById('remoteAudio').srcObject=e.streams[0]; document.getElementById('remoteVideo').srcObject=e.streams[0]; };
-        peerConnection.onicecandidate = e => { if(e.candidate) db.ref(`calls/${currentUser}/receiverCandidates`).push(e.candidate.toJSON()); };
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(snap.val().offer));
-        const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer);
-        await db.ref('calls/'+currentUser).update({ answer:{type:answer.type, sdp:answer.sdp}, status:'accepted' });
-        startActiveCallUI();
-    }
-
-    function endCall() { if(currentCallRefId) db.ref('calls/'+currentCallRefId).remove(); hideCallUI(); }
-    function hideCallUI() { if(peerConnection) peerConnection.close(); document.getElementById('callUI').style.display='none'; document.getElementById('activeCallBtns').style.display='none'; document.getElementById('remoteVideo').style.display='none'; document.getElementById('ringtone').pause(); clearInterval(callTimer); currentCallRefId=""; }
-    function toggleVideo() { isVideoOn=!isVideoOn; localStream.getVideoTracks()[0].enabled=isVideoOn; document.getElementById('remoteVideo').style.display=isVideoOn?'block':'none'; }
-    function toggleMute() { isMuted=!isMuted; localStream.getAudioTracks()[0].enabled=!isMuted; }
-
-    // --- الشات والطلبات ---
     function openChat(n) {
         document.getElementById('groupList').style.display='none'; document.getElementById('activeChat').style.display='flex';
+        document.getElementById('currentGroupName').innerText = n;
         db.ref('chats/'+n).on('value', snap => {
             const box = document.getElementById('chatBox'); box.innerHTML = "";
-            snap.forEach(c => { box.innerHTML += `<div class="msg"><div style="font-size:10px; color:var(--neon);">${c.val().name}</div><div>${c.val().text}</div></div>`; });
+            snap.forEach(c => {
+                const m = c.val();
+                let mediaHtml = m.type==='image' ? `<img src="${m.url}" class="chat-media">` : m.type==='video' ? `<video src="${m.url}" class="chat-media" controls></video>` : "";
+                box.innerHTML += `<div class="msg"><div class="msg-content"><div class="msg-header"><span class="msg-sender-name">${m.rank} / ${m.name}</span><span>${m.id}</span></div><div class="msg-text">${m.text||""}</div>${mediaHtml}<div class="msg-time">${new Date(m.time).toLocaleTimeString()}</div></div></div>`;
+            });
             box.scrollTop = box.scrollHeight;
         });
     }
+
     function sendMsg() {
         const val = document.getElementById('msgInput').value.trim(); if(!val) return;
-        db.ref('chats/المجموعة المشتركة').push({ name: personnelDB[currentUser], text: val, time: Date.now() });
+        db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({ id: currentUser, rank: personnelDB[currentUser].rank, name: personnelDB[currentUser].name, text: val, time: Date.now() });
         document.getElementById('msgInput').value = "";
     }
-    function submitRequest() {
-        const type = document.getElementById('reqType').value, details = document.getElementById('reqDetails').value.trim();
-        if(!details) return alert("اكتب التفاصيل");
-        const reqRef = db.ref('all_requests').push();
-        reqRef.set({ id: reqRef.key, senderId: currentUser, name: personnelDB[currentUser], type, details, status: 'pending', time: Date.now() });
-        db.ref('chats/رئيس القسم').push({ name: "نظام الطلبات", text: `📥 طلب جديد من ${personnelDB[currentUser]}`, time: Date.now() });
-        alert("تم الإرسال");
+
+    function uploadMedia(input, type) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e => db.ref('chats/' + document.getElementById('currentGroupName').innerText).push({ id: currentUser, rank: personnelDB[currentUser].rank, name: personnelDB[currentUser].name, url: e.target.result, type: type, time: Date.now() });
+        reader.readAsDataURL(file);
     }
-    function listenForMyRequests() {
-        db.ref('all_requests').orderByChild('senderId').equalTo(currentUser).on('value', snap => {
-            const list = document.getElementById('myReqList'); list.innerHTML = "";
-            snap.forEach(c => { const r = c.val(); list.innerHTML += `<div class="req-status-card"><strong>${r.type}</strong>: ${r.status==='pending'?'⏳':'✅'}</div>`; });
-        });
+
+    function startCall() {
+        let tid = document.getElementById('targetId').value.trim();
+        currentCallRefId = tid; document.getElementById('callUI').style.display='block';
+        db.ref('calls/'+tid).set({ callerId: currentUser, status:'ringing' });
     }
+    function listenForCalls() { db.ref('calls/'+currentUser).on('value', s => { if(s.val() && s.val().status==='ringing') { currentCallRefId=currentUser; document.getElementById('callUI').style.display='block'; document.getElementById('peerName').innerText = personnelDB[s.val().callerId].name; document.getElementById('ringtone').play(); } else if(!s.val()) endCall(); }); }
+    function handleAccept() { document.getElementById('ringtone').pause(); db.ref('calls/'+currentUser).update({ status: 'accepted' }); }
+    function endCall() { if(currentCallRefId) db.ref('calls/'+currentCallRefId).remove(); document.getElementById('callUI').style.display='none'; document.getElementById('ringtone').pause(); currentCallRefId = ""; }
     function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block'; if(t==='home' && map) setTimeout(()=>map.invalidateSize(), 200); }
     function backToGroups() { document.getElementById('groupList').style.display = 'block'; document.getElementById('activeChat').style.display = 'none'; }
-    function logout() { db.ref('online_users/'+currentUser).remove(); localStorage.removeItem('session_user'); location.reload(); }
-    function triggerRaid() { db.ref('alerts/raid').push({ by: personnelDB[currentUser], time: Date.now() }); }
-    function listenForRaidAlerts() { db.ref('alerts/raid').limitToLast(1).on('child_added', snap => { if(Date.now()-snap.val().time < 15000) { document.getElementById('raidAlertSender').innerText=snap.val().by; document.getElementById('raidAlertUI').style.display='flex'; document.getElementById('sirenSound').play(); } }); }
-    function dismissRaidAlert() { document.getElementById('raidAlertUI').style.display = 'none'; document.getElementById('sirenSound').pause(); }
     function checkGroups() { db.ref('users_groups/'+currentUser).on('value', s => { if(s.val() && s.val()['رئيس القسم']) document.getElementById('btn-gSecret').style.display='block'; }); }
-    function setupCallUI(id, type) { document.getElementById('callUI').style.display='flex'; document.getElementById('peerName').innerText = personnelDB[id]||"عسكري"; document.getElementById('callActionBtns').style.display = type==='incoming'?'flex':'none'; }
-    function startActiveCallUI() { document.getElementById('callActionBtns').style.display='none'; document.getElementById('activeCallBtns').style.display='flex'; document.getElementById('activeCallTimer').style.display='block'; let sec = 0; clearInterval(callTimer); callTimer = setInterval(() => { sec++; let m=Math.floor(sec/60), s=sec%60; document.getElementById('activeCallTimer').innerText=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }, 1000); }
+    function logout() { db.ref('online_users/'+currentUser).remove(); localStorage.removeItem('session_user'); location.reload(); }
 </script>
 </body>
 </html>
