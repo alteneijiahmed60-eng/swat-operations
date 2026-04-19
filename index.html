@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --main: #968c83; --light: #b9b3ad; --bg: #000; --panel: #111; --danger: #ff0000; }
+        :root { --main: #968c83; --light: #b9b3ad; --bg: #000; --panel: #111; --danger: #ff0000; --neon: #00ff41; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
+        /* تسجيل الدخول */
         #loginPage { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
         .login-box { background: var(--panel); padding: 30px; border: 1px solid var(--main); width: 100%; max-width: 380px; text-align: center; border-radius: 8px; }
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: var(--light); border-radius: 4px; text-align: center; outline: none; }
@@ -21,25 +22,26 @@
         .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; padding-bottom: 90px; }
         
         /* الرادار المطور */
-        .radar-container { display: flex; flex-direction: column; gap: 10px; height: 100%; }
-        @media (min-width: 769px) { .radar-container { flex-direction: row; height: 450px; } }
-        #radarMap { flex: 2; height: 320px; border: 1px solid var(--main); filter: grayscale(1) invert(1); }
+        .radar-frame { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+        @media (min-width: 769px) { .radar-frame { flex-direction: row; height: 450px; } }
+        #radarMap { flex: 2.5; height: 320px; border: 1px solid var(--main); filter: grayscale(1) invert(1); }
         .units-sidebar { flex: 1; background: var(--panel); border: 1px solid var(--main); overflow-y: auto; padding: 10px; max-height: 350px; }
-        .unit-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #222; font-size: 11px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #fff; }
+        .unit-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #222; font-size: 11px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #fff; }
 
-        /* الشات */
+        /* الشات والمجموعات */
         .chat-box { flex: 1; overflow-y: auto; background: #080808; border: 1px solid var(--main); padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; }
         .msg { background: var(--panel); padding: 10px; border-radius: 8px; border-right: 4px solid var(--main); max-width: 90%; }
         .msg-header { font-size: 10px; color: var(--main); font-weight: bold; margin-bottom: 4px; }
-        .msg-text { font-size: 13px; white-space: pre-wrap; line-height: 1.4; }
-        .msg-time { font-size: 8px; color: #555; text-align: left; margin-top: 5px; }
+        .msg-text { font-size: 13px; white-space: pre-wrap; line-height: 1.4; color: #eee; }
         .chat-media { max-width: 100%; border-radius: 5px; margin-top: 8px; border: 1px solid #333; }
 
+        /* التنقل السفلي */
         .nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--main); z-index: 1000; }
         .nav-item { color: var(--main); font-size: 24px; cursor: pointer; opacity: 0.4; }
         .nav-item.active { opacity: 1; }
 
+        /* المكالمة */
         #callUI { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; }
         #remoteVideo { width: 100%; height: 100%; position: absolute; object-fit: cover; }
         #localVideo { width: 90px; height: 120px; position: absolute; top: 15px; left: 15px; border: 1px solid var(--main); z-index: 100; transform: scaleX(-1); }
@@ -69,15 +71,25 @@
     </header>
 
     <div id="homeSec" class="tab-content" style="display: block;">
-        <div id="adminPanel" style="display:none; background: #1c2126; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--main);">
-            <input type="text" id="targetUser" placeholder="رقم العسكري">
+        <div id="adminPanel" style="display:none; background: #1c2126; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--main);">
+            <h4 style="color: var(--main); margin-top:0;">لوحة قيادة العمليات</h4>
+            <input type="text" id="targetUser" list="personnelList" placeholder="رقم العسكري للتوزيع">
             <select id="targetGroupAdmin">
                 <option value="المجموعة المشتركة">المجموعة المشتركة</option>
+                <option value="المجموعة القتالية الأولى">المجموعة القتالية الأولى</option>
+                <option value="المجموعة القتالية الثانية">المجموعة القتالية الثانية</option>
+                <option value="المجموعة القتالية الثالثة">المجموعة القتالية الثالثة</option>
+                <option value="قلم القوة">قلم القوة</option>
                 <option value="رئيس القسم">شات رئيس القسم</option>
             </select>
-            <button class="btn-main" onclick="manageMember('add')">توزيع</button>
-            <button class="btn-main" style="background:var(--danger); color:#fff; margin-top:5px;" onclick="triggerRaid()">نداء مداهمة</button>
+            <div style="display:flex; gap:5px;">
+                <button class="btn-main" style="flex:1;" onclick="manageMember('add')">توزيع</button>
+                <button class="btn-main" style="flex:1; background:var(--danger); color:#fff;" onclick="manageMember('remove')">سحب صلاحية</button>
+            </div>
+            <button class="btn-main" style="background:var(--main); color:#000; margin-top:10px;" onclick="triggerRaid()">نداء مداهمة</button>
+            <button class="btn-main" style="background:transparent; color:var(--danger); border:1px solid var(--danger); margin-top:5px; font-size:11px;" onclick="clearChat()">مسح رسائل المجموعة</button>
         </div>
+
         <div class="radar-container">
             <div id="radarMap"></div>
             <div class="units-sidebar" id="unitsList"></div>
@@ -87,14 +99,18 @@
     <div id="chatSec" class="tab-content">
         <div id="groupList">
             <button class="btn-main" style="margin-bottom:10px;" onclick="openChat('المجموعة المشتركة')">المجموعة المشتركة</button>
-            <button id="btn-gSecret" class="btn-main" style="display:none; background: var(--light); color:#000;" onclick="openChat('رئيس القسم')">مكتب رئيس القسم 🔒</button>
+            <button id="btn-g1" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الأولى')">القتالية الأولى</button>
+            <button id="btn-g2" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثانية')">القتالية الثانية</button>
+            <button id="btn-g3" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('المجموعة القتالية الثالثة')">القتالية الثالثة</button>
+            <button id="btn-g4" class="btn-main" style="display:none; margin-bottom:10px;" onclick="openChat('قلم القوة')">قلم القوة</button>
+            <button id="btn-gSecret" class="btn-main" style="display:none; background: goldenrod; color:#000;" onclick="openChat('رئيس القسم')">مكتب رئيس القسم 🔒</button>
         </div>
-        <div id="activeChat" style="display:none; height:100%; flex-direction:column;">
+        <div id="activeChat" style="display:none; flex-direction:column; height:100%;">
             <div id="chatBox" class="chat-box"></div>
-            <div style="background:var(--panel); padding:10px; border:1px solid var(--main); margin-top:5px;">
-                <div style="display:flex; gap:10px; margin-bottom:5px;">
-                    <label for="mediaImg"><i class="fas fa-camera" style="color:var(--main); cursor:pointer;"></i></label>
-                    <label for="mediaVid"><i class="fas fa-video" style="color:var(--main); cursor:pointer;"></i></label>
+            <div style="background:var(--panel); padding:10px; border:1px solid var(--main); margin-top:5px; border-radius:8px;">
+                <div style="display:flex; gap:15px; margin-bottom:8px;">
+                    <label for="mediaImg"><i class="fas fa-camera" style="color:var(--main); cursor:pointer; font-size:20px;"></i></label>
+                    <label for="mediaVid"><i class="fas fa-video" style="color:var(--main); cursor:pointer; font-size:20px;"></i></label>
                     <input type="file" id="mediaImg" hidden accept="image/*" onchange="uploadMedia(this, 'image')">
                     <input type="file" id="mediaVid" hidden accept="video/*" onchange="uploadMedia(this, 'video')">
                 </div>
@@ -110,7 +126,7 @@
     <div id="callTabSec" class="tab-content">
         <div style="padding:25px; border:1px solid var(--main); text-align:center;">
             <h3>اتصال مرئي مؤمن</h3>
-            <input type="text" id="targetId" placeholder="رقم العسكري للزميل">
+            <input type="text" id="targetId" placeholder="رقم العسكري">
             <button class="btn-main" style="margin-top:15px;" onclick="startCall()">اطلب الآن</button>
         </div>
     </div>
@@ -150,86 +166,49 @@
 
     // القائمة الكاملة لجميع الأسماء والشباب (60 عسكري)
     const personnelDB = {
-        "1321": { rank: "رائد", name: "مبارك محمد عبدالله" },
-        "1408": { rank: "رائد", name: "محمد عبدالله المهيري" },
-        "1549": { rank: "نقيب", name: "راشد احمد عبدالرحمن" },
-        "1565": { rank: "نقيب", name: "طلال حسن شهيل" },
-        "1587": { rank: "نقيب", name: "محمد علي الدرمكي" },
-        "1739": { rank: "ملازم أول", name: "سالم راشد الخيال" },
-        "1886": { rank: "ملازم", name: "صالح عبيد غريب" },
-        "1825": { rank: "ملازم", name: "محمد سعيد النقبي" },
-        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله ال علي" },
-        "100270": { rank: "مساعد ضابط", name: "حسن علي محمد النقبي" },
-        "100342": { rank: "مساعد ضابط", name: "خالد حسين الحوسني" },
-        "100576": { rank: "مساعد ضابط", name: "شاهين حسن شاهين" },
-        "100659": { rank: "مساعد ضابط", name: "عمر محمد حسن عباس" },
-        "100747": { rank: "مساعد ضابط", name: "احمد محمد خلف صالح" },
-        "100758": { rank: "مساعد ضابط", name: "محمد خلفان راشد عبيد" },
-        "100836": { rank: "مساعد ضابط", name: "حمدان عبدالله سند" },
-        "100945": { rank: "مساعد ضابط", name: "ابراهيم هيكل كرم" },
-        "100946": { rank: "مساعد ضابط", name: "سعيد محمد مصطفى" },
-        "100986": { rank: "مساعد ضابط", name: "عمران راشد معيني" },
-        "100999": { rank: "مساعد ضابط", name: "ابراهيم خليفه اليماني" },
-        "101040": { rank: "مساعد ضابط", name: "فهد محمد مراد المازمي" },
-        "101059": { rank: "مساعد ضابط", name: "حسين ابراهيم الحوسني" },
-        "101171": { rank: "مساعد ضابط", name: "حمد حسن شهداد" },
-        "101252": { rank: "مساعد أول", name: "احمد مختار الملا" },
-        "101291": { rank: "مساعد أول", name: "عبدالله معتوق الحوسني" },
-        "101308": { rank: "مساعد أول", name: "حميد حسن الدرمكي" },
-        "101313": { rank: "مساعد أول", name: "عمر محمد صالح النقبي" },
-        "101333": { rank: "مساعد أول", name: "فيصل يوسف المازمي" },
-        "101341": { rank: "مساعد أول", name: "يوسف مال الله عبدالله" },
-        "101512": { rank: "مساعد", name: "محمد راشد بن ركن" },
-        "101598": { rank: "مساعد", name: "أحمد اسماعيل عبدولي" },
-        "101604": { rank: "مساعد", name: "ابراهيم علي عبدالسلام" },
-        "101650": { rank: "مساعد", name: "خميس احمد الملص" },
-        "101784": { rank: "مساعد", name: "حمد محمد غلوم" },
-        "101787": { rank: "مساعد", name: "خليفه خالد ال علي" },
-        "101932": { rank: "مساعد", name: "ابراهيم عيسى عبدالقادر" },
-        "102020": { rank: "رقيب أول", name: "عبدالله حسين الحوسني" },
-        "102103": { rank: "رقيب أول", name: "محمد أحمد البلوشي" },
-        "102196": { rank: "رقيب أول", name: "عبدالله راشد الـنداس" },
-        "102606": { rank: "عريف أول", name: "سالم عبد الله الشامسي" },
-        "102662": { rank: "عريف أول", name: "عبدالرحمن ثابت الضو" },
-        "102854": { rank: "عريف أول", name: "عبدالله سرور الياسي" },
-        "102955": { rank: "عريف أول", name: "محمد عبدالله صقر" },
-        "103034": { rank: "عريف أول", name: "سعود ايوب المازمي" },
-        "103392": { rank: "عريف أول", name: "عبدالله حسن المازمي" },
-        "103152": { rank: "عريف أول", name: "محمد درويش محمد" },
-        "103493": { rank: "عريف", name: "سيف حسين روباري" },
-        "103553": { rank: "عريف", name: "احمد محمد المازمي" },
-        "103590": { rank: "عريف", name: "غريب سالم المازمي" },
-        "103599": { rank: "عريف", name: "خالد حسن النقبي" },
-        "103604": { rank: "عريف", name: "عبيد محمد الكعبي" },
-        "103615": { rank: "عريف", name: "عادل ابراهيم ال علي" },
-        "103634": { rank: "عريف", name: "محمد عبدالله الظهوري" },
-        "103635": { rank: "عريف", name: "محمد عبدالله الهوتي" },
-        "103636": { rank: "عريف", name: "سهيل سالم الكتبي" },
-        "103644": { rank: "عريف", name: "حميد سميح البلوشي" },
-        "103774": { rank: "عريف", name: "محمد احمد سليمان" },
-        "103777": { rank: "عريف", name: "سالم احمد الحمادي" },
-        "103778": { rank: "عريف", name: "محمد يونس المازمي" },
-        "103779": { rank: "عريف", name: "سالم عبدالله المهيري" },
-        "103787": { rank: "عريف", name: "سالم ثاني الجلاف" },
-        "104317": { rank: "شرطي أول", name: "محمد طلعان البلوشي" },
-        "104334": { rank: "شرطي أول", name: "محمد جاسم البلوشي" },
-        "104372": { rank: "شرطي أول", name: "ناصر عبدالله البلوشي" },
-        "104803": { rank: "شرطي أول", name: "راشد ناصر النبهاني" },
-        "104528": { rank: "شرطي أول", name: "خالد راشد الكتبي" },
-        "105042": { rank: "شرطي أول", name: "أحمد حمدان الطنيجي" },
-        "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
-        "105364": { rank: "شرطي أول", name: "فهد سعيد الشحي" },
-        "105869": { rank: "شرطي أول", name: "حسن علي الرئيسي" }
+        "1321": { rank: "رائد", name: "مبارك محمد عبدالله" }, "1408": { rank: "رائد", name: "محمد عبدالله المهيري" },
+        "1549": { rank: "نقيب", name: "راشد احمد عبدالرحمن" }, "1565": { rank: "نقيب", name: "طلال حسن شهيل" },
+        "1587": { rank: "نقيب", name: "محمد علي الدرمكي" }, "1739": { rank: "ملازم أول", name: "سالم راشد الخيال" },
+        "1886": { rank: "ملازم", name: "صالح عبيد غريب" }, "1825": { rank: "ملازم", name: "محمد سعيد النقبي" },
+        "100009": { rank: "مساعد ضابط", name: "علي محمد عبدالله ال علي" }, "100270": { rank: "مساعد ضابط", name: "حسن علي محمد النقبي" },
+        "100342": { rank: "مساعد ضابط", name: "خالد حسين الحوسني" }, "100576": { rank: "مساعد ضابط", name: "شاهين حسن شاهين" },
+        "100659": { rank: "مساعد ضابط", name: "عمر محمد حسن عباس" }, "100747": { rank: "مساعد ضابط", name: "احمد محمد خلف صالح" },
+        "100758": { rank: "مساعد ضابط", name: "محمد خلفان راشد عبيد" }, "100836": { rank: "مساعد ضابط", name: "حمدان عبدالله سند" },
+        "100945": { rank: "مساعد ضابط", name: "ابراهيم هيكل كرم" }, "100946": { rank: "مساعد ضابط", name: "سعيد محمد مصطفى" },
+        "100986": { rank: "مساعد ضابط", name: "عمران راشد معيني" }, "100999": { rank: "مساعد ضابط", name: "ابراهيم خليفه اليماني" },
+        "101040": { rank: "مساعد ضابط", name: "فهد محمد مراد المازمي" }, "101059": { rank: "مساعد ضابط", name: "حسين ابراهيم الحوسني" },
+        "101171": { rank: "مساعد ضابط", name: "حمد حسن شهداد" }, "101252": { rank: "مساعد أول", name: "احمد مختار الملا" },
+        "101291": { rank: "مساعد أول", name: "عبدالله معتوق الحوسني" }, "101308": { rank: "مساعد أول", name: "حميد حسن الدرمكي" },
+        "101313": { rank: "مساعد أول", name: "عمر محمد صالح النقبي" }, "101333": { rank: "مساعد أول", name: "فيصل يوسف المازمي" },
+        "101341": { rank: "مساعد أول", name: "يوسف مال الله عبدالله" }, "101512": { rank: "مساعد", name: "محمد راشد بن ركن" },
+        "101598": { rank: "مساعد", name: "أحمد اسماعيل عبدولي" }, "101604": { rank: "مساعد", name: "ابراهيم علي عبدالسلام" },
+        "101650": { rank: "مساعد", name: "خميس احمد الملص" }, "101784": { rank: "مساعد", name: "حمد محمد غلوم" },
+        "101787": { rank: "مساعد", name: "خليفه خالد ال علي" }, "101932": { rank: "مساعد", name: "ابراهيم عيسى عبدالقادر" },
+        "102020": { rank: "رقيب أول", name: "عبدالله حسين الحوسني" }, "102103": { rank: "رقيب أول", name: "محمد أحمد البلوشي" },
+        "102196": { rank: "رقيب أول", name: "عبدالله راشد الـنداس" }, "102606": { rank: "عريف أول", name: "سالم عبد الله الشامسي" },
+        "102662": { rank: "عريف أول", name: "عبدالرحمن ثابت الضو" }, "102854": { rank: "عريف أول", name: "عبدالله سرور الياسي" },
+        "102955": { rank: "عريف أول", name: "محمد عبدالله صقر" }, "103034": { rank: "عريف أول", name: "سعود ايوب المازمي" },
+        "103392": { rank: "عريف أول", name: "عبدالله حسن المازمي" }, "103152": { rank: "عريف أول", name: "محمد درويش محمد" },
+        "103493": { rank: "عريف", name: "سيف حسين روباري" }, "103553": { rank: "عريف", name: "احمد محمد المازمي" },
+        "103590": { rank: "عريف", name: "غريب سالم المازمي" }, "103599": { rank: "عريف", name: "خالد حسن النقبي" },
+        "103604": { rank: "عريف", name: "عبيد محمد طارش الكعبي" }, "103615": { rank: "عريف", name: "عادل ابراهيم ال علي" },
+        "103634": { rank: "عريف", name: "محمد عبدالله الظهوري" }, "103635": { rank: "عريف", name: "محمد عبدالله الهوتي" },
+        "103636": { rank: "عريف", name: "سهيل سالم الكتبي" }, "103644": { rank: "عريف", name: "حميد سميح البلوشي" },
+        "103774": { rank: "عريف", name: "محمد احمد سليمان" }, "103777": { rank: "عريف", name: "سالم احمد الحمادي" },
+        "103778": { rank: "عريف", name: "محمد يونس المازمي" }, "103779": { rank: "عريف", name: "سالم عبدالله المهيري" },
+        "103787": { rank: "عريف", name: "سالم ثاني الجلاف" }, "104317": { rank: "شرطي أول", name: "محمد طلعان البلوشي" },
+        "104334": { rank: "شرطي أول", name: "محمد جاسم البلوشي" }, "104372": { rank: "شرطي أول", name: "ناصر عبدالله البلوشي" },
+        "104803": { rank: "شرطي أول", name: "راشد ناصر النبهاني" }, "104528": { rank: "شرطي أول", name: "خالد راشد الكتبي" },
+        "105042": { rank: "شرطي أول", name: "أحمد حمدان الطنيجي" }, "105061": { rank: "شرطي أول", name: "عبدالله علي القايدي" },
+        "105364": { rank: "شرطي أول", name: "فهد سعيد الشحي" }, "105869": { rank: "شرطي أول", name: "حسن علي الرئيسي" }
     };
 
     let currentUser = "", map, markers = {}, localStream, peerConnection, currentCallRefId;
-    const colors = ["#968c83", "#b9b3ad", "#ffffff", "#444444", "#888888", "#555555", "#aa9f96", "#d1ccc7"];
+    const colors = ["#968c83", "#b9b3ad", "#ffffff", "#444444", "#888888", "#555555"];
 
     window.onload = function() {
         const list = document.getElementById('personnelList');
-        Object.keys(personnelDB).sort().forEach(id => {
-            list.appendChild(new Option(id + " - " + personnelDB[id].name, id));
-        });
+        Object.keys(personnelDB).sort().forEach(id => { list.appendChild(new Option(id + " - " + personnelDB[id].name, id)); });
         let saved = localStorage.getItem('session_user');
         if (saved && personnelDB[saved]) { currentUser = saved; loginSuccess(); }
     };
@@ -245,8 +224,7 @@
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('userDisplay').innerText = personnelDB[currentUser].rank + " / " + personnelDB[currentUser].name;
-        initRadar(); listenForCalls(); openChat('المجموعة المشتركة');
-        db.ref('users_groups/'+currentUser).on('value', s => { if(s.val() && s.val()['رئيس القسم']) document.getElementById('btn-gSecret').style.display='block'; });
+        initRadar(); listenForCalls(); openChat('المجموعة المشتركة'); checkGroups();
         if(["1321", "1408", "1549", "1886"].includes(currentUser)) document.getElementById('adminPanel').style.display = 'block';
         navigator.mediaDevices.getUserMedia({audio:true, video:true}).then(s => { localStream = s; document.getElementById('localVideo').srcObject = s; }).catch(e=>console.log(e));
     }
@@ -254,12 +232,11 @@
     function initRadar() {
         if(!map) { map = L.map('radarMap').setView([25.3462, 55.4209], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
         navigator.geolocation.watchPosition(pos => {
-            db.ref('online_users/' + currentUser).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: personnelDB[currentUser].name, color: colors[parseInt(currentUser)%8] });
+            db.ref('online_users/' + currentUser).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: personnelDB[currentUser].name, color: colors[parseInt(currentUser)%6] });
         }, null, { enableHighAccuracy: true });
-
         db.ref('online_users').on('value', snap => {
             const data = snap.val() || {};
-            const list = document.getElementById('unitsList'); list.innerHTML = "<strong>الوحدات المتصلة:</strong><br>";
+            const list = document.getElementById('unitsList'); list.innerHTML = "<strong>الوحدات:</strong><br>";
             for(let id in markers) { if(!data[id]) { map.removeLayer(markers[id]); delete markers[id]; } }
             for(let id in data) {
                 const u = data[id];
@@ -296,25 +273,34 @@
         reader.readAsDataURL(file);
     }
 
+    function checkGroups() {
+        db.ref('users_groups/'+currentUser).on('value', s => {
+            const acc = s.val() || {};
+            if(acc['المجموعة القتالية الأولى']) document.getElementById('btn-g1').style.display='block';
+            if(acc['المجموعة القتالية الثانية']) document.getElementById('btn-g2').style.display='block';
+            if(acc['المجموعة القتالية الثالثة']) document.getElementById('btn-g3').style.display='block';
+            if(acc['قلم القوة']) document.getElementById('btn-g4').style.display='block';
+            if(acc['رئيس القسم']) document.getElementById('btn-gSecret').style.display='block';
+        });
+    }
+
+    function manageMember(a) { 
+        let t = document.getElementById('targetUser').value.trim().split(' ')[0];
+        let g = document.getElementById('targetGroupAdmin').value;
+        db.ref('users_groups/'+t+'/'+g).set(a==='add'?true:null); alert("تم التحديث");
+    }
+
     function startCall() {
         let tid = document.getElementById('targetId').value.trim();
         currentCallRefId = tid; document.getElementById('callUI').style.display='block';
         db.ref('calls/'+tid).set({ callerId: currentUser, status:'ringing' });
     }
-
-    function listenForCalls() {
-        db.ref('calls/'+currentUser).on('value', s => {
-            if(s.val() && s.val().status==='ringing') { currentCallRefId=currentUser; document.getElementById('callUI').style.display='block'; document.getElementById('peerName').innerText = s.val().callerId; document.getElementById('ringtone').play(); }
-            else if(!s.val()) endCall();
-        });
-    }
-
+    function listenForCalls() { db.ref('calls/'+currentUser).on('value', s => { if(s.val() && s.val().status==='ringing') { currentCallRefId=currentUser; document.getElementById('callUI').style.display='block'; document.getElementById('peerName').innerText = s.val().callerId; document.getElementById('ringtone').play(); } else if(!s.val()) endCall(); }); }
     function handleAccept() { document.getElementById('ringtone').pause(); db.ref('calls/'+currentUser).update({ status: 'accepted' }); }
     function endCall() { if(currentCallRefId) db.ref('calls/'+currentCallRefId).remove(); document.getElementById('callUI').style.display='none'; document.getElementById('ringtone').pause(); currentCallRefId=""; }
     function switchTab(t, el) { document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(t + 'Sec').style.display = 'block'; document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); if(t==='home' && map) setTimeout(()=>map.invalidateSize(), 200); }
     function backToGroups() { document.getElementById('groupList').style.display='block'; document.getElementById('activeChat').style.display='none'; }
-    function triggerRaid() { db.ref('alerts/raid').push({ by: personnelDB[currentUser].name, time: Date.now() }); }
-    function manageMember(a) { db.ref('users_groups/'+document.getElementById('targetUser').value.trim()+'/'+document.getElementById('targetGroupAdmin').value).set(a==='add'?true:null); alert("تم"); }
+    function clearChat() { if(confirm("مسح؟")) db.ref('chats/'+document.getElementById('currentGroupName').innerText).remove(); }
     function logout() { db.ref('online_users/'+currentUser).remove(); localStorage.removeItem('session_user'); location.reload(); }
 </script>
 </body>
