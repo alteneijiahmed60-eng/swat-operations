@@ -125,9 +125,22 @@
         #radarMap { width: 100%; height: 100%; z-index: 1; background: #000; filter: contrast(1.2) brightness(0.9);}
         .leaflet-control-zoom { display: none; }
 
+        /* Admin Panel */
+        .admin-panel { border: 2px solid var(--danger); padding: 15px; margin-bottom: 20px; border-radius: 12px; background: rgba(211, 47, 47, 0.05); }
+
+        /* Raid Alert */
+        #raidAlertModal {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(211, 47, 47, 0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            animation: flashAlert 0.8s infinite alternate;
+        }
+        @keyframes flashAlert { from { background: rgba(211, 47, 47, 0.95); } to { background: rgba(150, 0, 0, 0.95); } }
+        .raid-text { font-size: 30px; font-weight: 900; color: white; margin-bottom: 20px; text-shadow: 0 0 15px black; text-align:center;}
+
         /* Requests List */
         .section-title { font-size: 15px; color: var(--secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: bold;}
-        .req-card { padding: 15px; margin-bottom: 12px; border-right: 4px solid transparent; } /* Arabic RTL */
+        .req-card { padding: 15px; margin-bottom: 12px; border-right: 4px solid transparent; } 
         .req-pending { border-right-color: #ffb300; }
         .req-accepted { border-right-color: var(--success); }
         .req-rejected { border-right-color: var(--danger); }
@@ -141,12 +154,13 @@
         /* WhatsApp Style Chat */
         .chat-groups { display: flex; flex-direction: column; gap: 12px; }
         .group-btn { padding: 20px; font-size: 16px; justify-content: flex-start; gap: 15px; border: 1px solid rgba(150, 140, 131, 0.2);}
-        .group-btn i.fa-users, .group-btn i.fa-user-secret { font-size: 24px; width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.3); }
+        .group-btn i { font-size: 24px; width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.3); }
         
         #activeChat { display: none; height: 100%; flex-direction: column; }
         .chat-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding-bottom: 15px; border-bottom: 1px solid var(--panel-border); }
-        .back-btn { background: rgba(255,255,255,0.05); width:35px; height:35px; border-radius:50%; border: none; color: white; font-size: 18px; cursor: pointer; display:flex; align-items:center; justify-content:center; }
-        
+        .back-btn { background: rgba(255,255,255,0.05); width:35px; height:35px; border-radius:50%; border: none; color: white; font-size: 18px; cursor: pointer; display:flex; align-items:center; justify-content:center; transition:0.3s;}
+        .back-btn:hover { background: rgba(255,255,255,0.1); }
+
         .chat-messages { 
             flex: 1; overflow-y: auto; padding: 15px 10px; display: flex; flex-direction: column; gap: 15px; 
             margin-bottom: 15px; background: rgba(0,0,0,0.3); border-radius: 16px;
@@ -167,7 +181,7 @@
             align-self: flex-end; border-top-left-radius: 4px; 
         }
         
-        .msg-user-meta { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .msg-user-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .msg-avatar { width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--primary); border:1px solid var(--primary-glow); }
         .msg-name-rank { font-size: 13px; font-weight: bold; line-height:1.2; }
         .msg-id { font-size: 10px; color: var(--text-muted); }
@@ -241,7 +255,7 @@
 
         .req-reason-text { margin-top: 8px; font-size: 12px; color: #ff8a80; background: rgba(211, 47, 47, 0.15); padding: 8px 10px; border-radius: 6px; border-right: 2px solid var(--danger);}
         
-        /* Custom Scrollbar for Chat */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         ::-webkit-scrollbar-thumb { background: rgba(150, 140, 131, 0.3); border-radius: 10px; }
@@ -251,6 +265,17 @@
 <body>
 
 <div id="toastContainer"></div>
+
+<!-- Audio Elements -->
+<audio id="sirenSound" src="https://www.soundjay.com/mechanical/sounds/alarm-clock-01.mp3" loop></audio>
+
+<!-- Raid Alert Modal -->
+<div id="raidAlertModal">
+    <i class="fas fa-exclamation-triangle fa-5x" style="color:yellow; margin-bottom: 25px; animation: pulse 1s infinite;"></i>
+    <div class="raid-text">إنذار مداهمة طارئ!</div>
+    <div id="raidSenderText" style="color:white; margin-bottom: 40px; font-size:20px; font-weight:bold;"></div>
+    <button class="btn" onclick="acknowledgeRaid()" style="width: 250px; height: 60px; font-size: 22px; background:white; color:var(--danger); border-radius:30px; box-shadow: 0 0 20px rgba(255,255,255,0.5);">استلام النداء</button>
+</div>
 
 <!-- Login Screen -->
 <div id="loginPage">
@@ -283,6 +308,33 @@
 
     <!-- Home Tab -->
     <div id="homeSec" class="tab-content active">
+        
+        <!-- Admin Command Panel -->
+        <div id="adminPanelSec" style="display:none;">
+            <div class="section-title" style="color:var(--danger);"><i class="fas fa-user-shield"></i> لوحة القيادة العليا</div>
+            <div class="admin-panel glass-panel">
+                <button class="btn btn-danger" onclick="triggerRaidAlert()" style="margin-bottom:20px; font-size:16px; height:55px;">
+                    <i class="fas fa-bullhorn fa-lg"></i> إطلاق نداء مداهمة عام للجميع
+                </button>
+                
+                <h4 style="margin-bottom:10px; font-size:14px; color:var(--text-main);"><i class="fas fa-users-cog"></i> إدارة المجموعات القتالية</h4>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <input type="number" id="targetMilId" placeholder="الرقم العسكري للفرد" style="margin-bottom:0; flex:1;">
+                    <select id="targetGroup" style="margin-bottom:0; flex:1;">
+                        <option value="المجموعة القتالية الأولى">المجموعة القتالية الأولى</option>
+                        <option value="المجموعة القتالية الثانية">المجموعة القتالية الثانية</option>
+                        <option value="المجموعة القتالية الثالثة">المجموعة القتالية الثالثة</option>
+                        <option value="قلم القوة">قلم القوة</option>
+                        <option value="رئيس القسم">مكتب رئيس القسم</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-primary" onclick="manageGroup('add')" style="flex:1;"><i class="fas fa-plus"></i> إضافة للمجموعة</button>
+                    <button class="btn btn-outline" onclick="manageGroup('remove')" style="flex:1; border-color:var(--danger); color:var(--danger);"><i class="fas fa-minus"></i> إزالة</button>
+                </div>
+            </div>
+        </div>
+
         <div class="stats-card glass-panel">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width:35px; height:35px; background:rgba(150, 140, 131, 0.15); border-radius:8px; display:flex; align-items:center; justify-content:center;">
@@ -316,26 +368,20 @@
                     <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">مراسلات عامة لكافة القوة</div>
                 </div>
             </button>
-            <button id="btn-gSecret" class="btn glass-panel group-btn" style="display:none; border-right: 3px solid #ffca28;" onclick="openChat('رئيس القسم', 'fas fa-user-secret')">
-                <i class="fas fa-user-secret" style="color: #ffca28;"></i>
-                <div style="text-align:right;">
-                    <div style="font-weight:bold; font-size:15px; color:#ffca28;">مكتب رئيس القسم</div>
-                    <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">قناة آمنة ومباشرة للقيادة</div>
-                </div>
-                <i class="fas fa-lock" style="margin-right: auto; font-size: 14px; color: rgba(255,255,255,0.2);"></i>
-            </button>
+            <div id="dynamicGroupsContainer"></div>
         </div>
 
         <div id="activeChat">
             <div class="chat-header">
                 <button class="back-btn" onclick="backToGroups()"><i class="fas fa-arrow-right"></i></button>
-                <div style="display:flex; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; flex:1;">
                     <div style="width:35px; height:35px; background:var(--primary-glow); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary);"><i id="chatHeaderIcon" class="fas fa-users"></i></div>
                     <div>
                         <div id="chatTitle" style="font-weight: bold; font-size: 16px;">--</div>
                         <div style="font-size: 11px; color: var(--success); display:flex; align-items:center; gap:4px;"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;"></span> متصل - مشفر E2E</div>
                     </div>
                 </div>
+                <button id="chatClearBtn" class="back-btn" style="background:rgba(211,47,47,0.2); color:var(--danger); display:none;" onclick="clearGroupChat()"><i class="fas fa-broom"></i></button>
             </div>
             
             <div id="chatBox" class="chat-messages">
@@ -430,7 +476,9 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // --- Personnel Database ---
+    // --- Personnel & Admin Database ---
+    const adminsList = ["1321", "1408", "1549", "1565", "1587", "1739", "1886", "1825"];
+    
     const personnelDB = {
         "1321": { rank: "رائد", name: "مبارك محمد عبدالله" }, "1408": { rank: "رائد", name: "محمد عبدالله المهيري" },
         "1549": { rank: "نقيب", name: "راشد احمد عبدالرحمن" }, "1565": { rank: "نقيب", name: "طلال حسن شهيل" },
@@ -495,13 +543,18 @@
         }, 3500);
     }
 
-    function formatDate(ts) {
+    function formatDateWhatsApp(ts) {
         const d = new Date(ts);
         const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
         const isToday = d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+        const isYesterday = d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear();
         
         const timeOpts = { hour: '2-digit', minute: '2-digit' };
-        if (isToday) return `${d.toLocaleTimeString('ar-AE', timeOpts)}`;
+        if (isToday) return `اليوم، ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
+        if (isYesterday) return `أمس، ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
         return `${d.toLocaleDateString('ar-AE')} ${d.toLocaleTimeString('ar-AE', timeOpts)}`;
     }
 
@@ -548,9 +601,11 @@
         document.getElementById('userNameDisplay').textContent = user.name;
         document.getElementById('userRankDisplay').textContent = user.rank;
         
+        checkAdminPrivileges();
         initRadar(); 
         checkGroups(); 
         listenForMyRequests();
+        listenForRaidAlerts();
     }
 
     function logout() {
@@ -580,11 +635,87 @@
         }
     }
 
+    // --- Admin & Raid Features ---
+    function checkAdminPrivileges() {
+        if(adminsList.includes(currentUser)) {
+            document.getElementById('adminPanelSec').style.display = 'block';
+            document.getElementById('chatClearBtn').style.display = 'flex';
+        } else {
+            document.getElementById('chatClearBtn').style.display = 'none';
+        }
+    }
+
+    function triggerRaidAlert() {
+        if(confirm("تحذير: إطلاق هذا النداء سيشغل إنذاراً عند جميع القوة. هل أنت متأكد؟")) {
+            const alertId = Date.now().toString();
+            db.ref('active_alert').set({
+                active: true,
+                senderId: currentUser,
+                senderName: personnelDB[currentUser].name,
+                time: Date.now(),
+                alertId: alertId
+            });
+            showToast("تم إطلاق نداء المداهمة للجميع!", "success");
+        }
+    }
+
+    function listenForRaidAlerts() {
+        db.ref('active_alert').on('value', snap => {
+            const alertData = snap.val();
+            if(alertData && alertData.active) {
+                // Check if already acknowledged
+                db.ref(`alert_acks/${alertData.alertId}/${currentUser}`).once('value').then(ackSnap => {
+                    if(!ackSnap.exists()) {
+                        document.getElementById('raidAlertModal').style.display = 'flex';
+                        document.getElementById('raidSenderText').innerText = `أمر من: ${alertData.senderName}`;
+                        const siren = document.getElementById('sirenSound');
+                        siren.play().catch(e => console.log("Autoplay blocked"));
+                    }
+                });
+            } else {
+                document.getElementById('raidAlertModal').style.display = 'none';
+                document.getElementById('sirenSound').pause();
+            }
+        });
+    }
+
+    function acknowledgeRaid() {
+        db.ref('active_alert').once('value').then(snap => {
+            const alertData = snap.val();
+            if(alertData && alertData.active) {
+                db.ref(`alert_acks/${alertData.alertId}/${currentUser}`).set({
+                    time: Date.now(),
+                    name: personnelDB[currentUser].name,
+                    rank: personnelDB[currentUser].rank
+                });
+                document.getElementById('raidAlertModal').style.display = 'none';
+                document.getElementById('sirenSound').pause();
+                document.getElementById('sirenSound').currentTime = 0;
+            }
+        });
+    }
+
+    function manageGroup(action) {
+        const id = document.getElementById('targetMilId').value.trim();
+        const group = document.getElementById('targetGroup').value;
+        
+        if(!id || !personnelDB[id]) return showToast("الرقم العسكري غير صحيح أو غير موجود", "error");
+        
+        const ref = db.ref(`users_groups/${id}/${group}`);
+        if(action === 'add') {
+            ref.set(true);
+            showToast(`تمت إضافة ${personnelDB[id].name} إلى ${group}`, "success");
+        } else {
+            ref.remove();
+            showToast(`تمت إزالة ${personnelDB[id].name} من ${group}`, "success");
+        }
+        document.getElementById('targetMilId').value = "";
+    }
+
     // --- Radar & Geolocation ---
     function initRadar() {
         if(!map) { 
             map = L.map('radarMap', { zoomControl: false, attributionControl: false }).setView([25.3462, 55.4209], 12); 
-            // Tactical Dark Map Theme
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 subdomains: 'abcd',
                 maxZoom: 19
@@ -611,12 +742,10 @@
             const data = snap.val() || {};
             document.getElementById('onlineCountDisplay').innerText = Object.keys(data).length;
             
-            // Remove old markers
             for(let id in markers) { 
                 if(!data[id]) { map.removeLayer(markers[id]); delete markers[id]; } 
             }
             
-            // Add/Update markers
             for(let id in data) {
                 const u = data[id];
                 if(markers[id]) {
@@ -637,13 +766,46 @@
         });
     }
 
-    // --- Groups & Permissions ---
+    // --- Dynamic Groups ---
+    const groupIcons = {
+        "المجموعة القتالية الأولى": "fas fa-fighter-jet",
+        "المجموعة القتالية الثانية": "fas fa-crosshairs",
+        "المجموعة القتالية الثالثة": "fas fa-shield-alt",
+        "قلم القوة": "fas fa-file-alt",
+        "رئيس القسم": "fas fa-user-secret"
+    };
+
+    const groupColors = {
+        "المجموعة القتالية الأولى": "#ff4d4d",
+        "المجموعة القتالية الثانية": "#ffca28",
+        "المجموعة القتالية الثالثة": "#4fc3f7",
+        "قلم القوة": "#968c83",
+        "رئيس القسم": "#ffca28"
+    };
+
     function checkGroups() {
-        const admins = ["1321", "1408", "1549"]; // Hardcoded admins
         db.ref('users_groups/' + currentUser).on('value', snap => {
             const acc = snap.val() || {};
-            if(acc['رئيس القسم'] || admins.includes(currentUser)) {
-                document.getElementById('btn-gSecret').style.display = 'flex';
+            const container = document.getElementById('dynamicGroupsContainer');
+            container.innerHTML = "";
+            
+            // Admins get access to رئيس القسم by default
+            if(adminsList.includes(currentUser)) acc['رئيس القسم'] = true;
+
+            for(let groupName in acc) {
+                if(acc[groupName]) {
+                    const icon = groupIcons[groupName] || "fas fa-users";
+                    const color = groupColors[groupName] || "var(--primary)";
+                    
+                    container.innerHTML += `
+                    <button class="btn glass-panel group-btn" style="border-right: 3px solid ${color};" onclick="openChat('${groupName}', '${icon}')">
+                        <i class="${icon}" style="color: ${color};"></i>
+                        <div style="text-align:right;">
+                            <div style="font-weight:bold; font-size:15px; color:${color};">${groupName}</div>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">قناة اتصال مخصصة للمجموعة</div>
+                        </div>
+                    </button>`;
+                }
             }
         });
     }
@@ -744,7 +906,7 @@
                         <strong style="font-size: 14px; color:var(--text-main);">${r.type}</strong>
                         <span class="req-badge ${badgeClass}">${statusText}</span>
                     </div>
-                    <div class="req-time"><i class="far fa-clock"></i> ${formatDate(r.time)}</div>
+                    <div class="req-time"><i class="far fa-clock"></i> ${formatDateWhatsApp(r.time)}</div>
                     ${reasonHtml}
                 `;
                 list.appendChild(card);
@@ -790,7 +952,6 @@
                 const m = c.val();
                 const key = c.key;
                 
-                // Fallback for old messages without senderId
                 const msgSenderId = m.senderId || '1321'; 
                 const isMine = msgSenderId === currentUser;
                 const senderData = personnelDB[msgSenderId] || {name: m.name || 'غير معروف', rank: ''};
@@ -798,17 +959,23 @@
                 const msgDiv = document.createElement('div');
                 msgDiv.className = `msg-bubble ${isMine ? 'msg-mine' : 'msg-other'}`;
                 
-                // Header (Rank, Name, ID)
+                let deleteBtnHtml = '';
+                if(isMine) {
+                    deleteBtnHtml = `<button onclick="deleteMsg('${key}')" style="background:none; border:none; color:var(--danger); cursor:pointer; opacity:0.7; padding:5px;"><i class="fas fa-trash-alt"></i></button>`;
+                }
+
                 let contentHTML = `
                     <div class="msg-user-meta">
-                        <div class="msg-avatar"><i class="fas fa-shield-alt"></i></div>
-                        <div>
-                            <div class="msg-name-rank" style="color:${isMine ? 'var(--text-main)' : 'var(--primary)'};">${senderData.rank} / ${senderData.name}</div>
-                            <div class="msg-id">رقم عسكري: ${msgSenderId}</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="msg-avatar"><i class="fas fa-shield-alt"></i></div>
+                            <div>
+                                <div class="msg-name-rank" style="color:${isMine ? 'var(--text-main)' : 'var(--primary)'};">${senderData.rank} / ${senderData.name}</div>
+                                <div class="msg-id">رقم عسكري: ${msgSenderId}</div>
+                            </div>
                         </div>
+                        ${deleteBtnHtml}
                     </div>`;
                 
-                // Text content
                 if(m.text) {
                     const textDiv = document.createElement('div');
                     textDiv.className = "msg-text";
@@ -816,7 +983,6 @@
                     contentHTML += textDiv.outerHTML;
                 }
                 
-                // Media / Attachments
                 if(m.fileUrl) {
                     const fName = m.fileName || 'مرفق';
                     if(m.fileType === 'image') {
@@ -834,12 +1000,11 @@
                     }
                 }
 
-                // Admin Controls for Requests
                 if(groupName === 'رئيس القسم' && m.isRequest) {
                     if(m.status === 'pending') {
                         contentHTML += `
                         <div class="admin-actions">
-                            <button class="btn btn-primary" onclick="updateReqStatus('${key}', '${m.reqId}', 'accepted')"><i class="fas fa-check-circle"></i> اعتماد الطلب</button>
+                            <button class="btn btn-primary" onclick="updateReqStatus('${key}', '${m.reqId}', 'accepted')"><i class="fas fa-check-circle"></i> اعتماد</button>
                             <button class="btn btn-danger" onclick="updateReqStatus('${key}', '${m.reqId}', 'rejected')"><i class="fas fa-times-circle"></i> رفض</button>
                         </div>`;
                     } else {
@@ -848,14 +1013,12 @@
                     }
                 }
 
-                // Timestamp & Checkmarks
-                contentHTML += `<div class="msg-time">${formatDate(m.time)} <i class="fas fa-check-double" style="color: ${isMine ? 'var(--primary)' : 'var(--text-muted)'}; margin-right:4px; font-size:11px;"></i></div>`;
+                contentHTML += `<div class="msg-time">${formatDateWhatsApp(m.time)} <i class="fas fa-check-double" style="color: ${isMine ? 'var(--primary)' : 'var(--text-muted)'}; margin-right:4px; font-size:11px;"></i></div>`;
                 
                 msgDiv.innerHTML = contentHTML;
                 box.appendChild(msgDiv);
             });
             
-            // Auto scroll to bottom
             setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
         });
     }
@@ -866,7 +1029,6 @@
         if(currentChatRef) db.ref(currentChatRef).off();
     }
 
-    // Auto-resize textarea
     document.getElementById('msgInput').addEventListener('input', function() {
         this.style.height = '50px';
         this.style.height = (this.scrollHeight) + 'px';
@@ -912,7 +1074,6 @@
             input.style.height = '50px';
             clearChatFile();
             
-            // scroll down
             const box = document.getElementById('chatBox');
             setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
 
@@ -925,18 +1086,27 @@
         }
     }
 
-    // Admin action
+    function deleteMsg(msgKey) {
+        if(confirm("هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.")) {
+            db.ref(currentChatRef).child(msgKey).remove();
+        }
+    }
+
+    function clearGroupChat() {
+        if(confirm("تحذير أمني عالي: هل أنت متأكد من مسح محادثات هذه المجموعة بالكامل لكافة الأفراد؟ هذا الإجراء لا يمكن التراجع عنه.")) {
+            db.ref(currentChatRef).remove();
+            showToast("تم مسح المحادثات بالكامل", "success");
+        }
+    }
+
     function updateReqStatus(msgKey, reqId, newStatus) {
         let reason = "";
         if(newStatus === 'rejected') {
             reason = prompt("الرجاء توضيح سبب رفض الطلب:");
-            if(reason === null) return; // Cancelled
+            if(reason === null) return; 
         }
 
-        // Update main request log
         db.ref('all_requests/' + reqId).update({ status: newStatus, rejectReason: reason });
-        
-        // Update message in admin chat
         db.ref('chats/رئيس القسم/' + msgKey).update({ status: newStatus });
         
         showToast("تم تحديث واعتماد حالة الطلب بنجاح", "success");
