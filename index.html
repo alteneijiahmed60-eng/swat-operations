@@ -328,19 +328,34 @@
     <div id="commSec" class="tab-content">
         <div class="section-title"><i class="fas fa-broadcast-tower"></i> جهاز الراديو التكتيكي (Walkie-Talkie)</div>
         <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
-            <div class="radio-screen">
-                <div style="font-size:12px; color:#888; margin-bottom:5px;">الموجة الحالية (MHz)</div>
-                <input type="number" step="0.01" class="freq-display" id="radioFreqInput" value="145.50" onchange="manualFreqChange()" style="background:transparent; border:none; text-align:center; width:100%; outline:none; padding:0; margin: 10px 0;">
-                <div style="display:flex; justify-content:center; gap:20px; margin-top:15px;">
-                    <button class="btn btn-outline" style="width:60px; height:40px; padding:0;" onclick="changeFreq(-0.5)"><i class="fas fa-minus"></i></button>
-                    <button class="btn btn-outline" style="width:60px; height:40px; padding:0;" onclick="changeFreq(0.5)"><i class="fas fa-plus"></i></button>
-                </div>
+            <div id="radioJoinScreen">
+                <div style="font-size:12px; color:#888; margin-bottom:5px; text-align:center;">اختر الموجة للانضمام (MHz)</div>
+                <input type="number" step="0.01" class="freq-display" id="radioFreqInput" value="145.50" style="background:rgba(0,0,0,0.5); border:1px solid var(--primary); text-align:center; width:100%; outline:none; padding:10px; margin: 10px 0; border-radius:12px; color:var(--primary);">
+                <button class="btn btn-primary" onclick="joinRadioRoom()" style="height:50px; font-size:18px;"><i class="fas fa-sign-in-alt"></i> انضمام للموجة</button>
             </div>
-            <div style="text-align:center; font-size:12px; color:var(--text-muted); margin-bottom:10px;">اضغط باستمرار للتحدث مع جميع المتصلين على هذه الموجة</div>
-            <button class="ptt-btn" id="pttBtn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">
-                <i class="fas fa-microphone fa-2x"></i>
-                <span>PTT</span>
-            </button>
+
+            <div id="radioActiveScreen" style="display:none; text-align:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
+                    <div style="text-align:right;">
+                        <div style="font-size:12px; color:#888;">موجة نشطة</div>
+                        <div style="font-family:'Courier New'; font-size:24px; font-weight:bold; color:var(--success); text-shadow:0 0 10px var(--success);"><span id="activeFreqDisplay"></span> MHz</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="leaveRadioRoom()" style="width:auto; padding:8px 15px; height:auto; font-size:12px;"><i class="fas fa-sign-out-alt"></i> مغادرة</button>
+                </div>
+                
+                <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:10px; margin-bottom:20px; min-height:80px; text-align:right;">
+                    <div style="font-size:12px; color:var(--primary); margin-bottom:10px; font-weight:bold;"><i class="fas fa-users"></i> المتصلون على الموجة (<span id="radioUsersCount">0</span>)</div>
+                    <div id="radioUsersList" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- Users will appear here -->
+                    </div>
+                </div>
+
+                <div style="text-align:center; font-size:12px; color:var(--text-muted); margin-bottom:10px;">اضغط باستمرار للتحدث</div>
+                <button class="ptt-btn" id="pttBtn" onmousedown="startPTT(event)" onmouseup="stopPTT(event)" ontouchstart="startPTT(event)" ontouchend="stopPTT(event)">
+                    <i class="fas fa-microphone fa-2x"></i>
+                    <span>PTT</span>
+                </button>
+            </div>
         </div>
 
         <div class="section-title"><i class="fas fa-phone-alt"></i> الاتصال المباشر المشفر (WebRTC)</div>
@@ -553,14 +568,14 @@
         }, 800);
     }
 
-    function logout() { if(watchId) navigator.geolocation.clearWatch(watchId); if(currentUser) db.ref('online_users/' + currentUser).remove(); localStorage.removeItem('session_user'); location.reload(); }
+    function logout() { if(watchId) navigator.geolocation.clearWatch(watchId); if(currentUser) { db.ref('online_users/' + currentUser).remove(); if(typeof radioFreqStr !== 'undefined' && radioFreqStr) db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}`).remove(); } localStorage.removeItem('session_user'); location.reload(); }
 
     function showMainApp() {
         const user = personnelDB[currentUser];
         document.getElementById('userNameDisplay').textContent = user.name; document.getElementById('userRankDisplay').textContent = user.rank;
         document.getElementById('profileNameDisplay').textContent = user.name; document.getElementById('profileRankDisplay').textContent = user.rank;
         updateHeaderAvatar(); checkAdminPrivileges(); initRadar(); initOfficialGroups(); listenForMyRequests(); listenForRaidAlerts();
-        listenToRadioFreq(); listenForCalls();
+        listenForCalls();
     }
 
     // --- High Accuracy GPS ---
@@ -587,27 +602,56 @@
     }
 
     // --- Tactical Radio System (PTT) ---
-    let radioFreq = 145.5;
-    let radioRecorder; let radioChunks = []; let isRadioRec = false; let radioListener = null;
+    let radioFreqStr = "145_50";
+    let radioRecorder; let radioChunks = []; let isRadioRec = false; let radioListener = null; let radioRoomRef = null;
 
-    function manualFreqChange() {
+    function joinRadioRoom() {
         let val = parseFloat(document.getElementById('radioFreqInput').value);
         if(isNaN(val)) val = 145.50;
-        radioFreq = val;
-        document.getElementById('radioFreqInput').value = radioFreq.toFixed(2);
+        radioFreqStr = val.toFixed(2).replace('.', '_');
+        
+        document.getElementById('radioJoinScreen').style.display = 'none';
+        document.getElementById('radioActiveScreen').style.display = 'block';
+        document.getElementById('activeFreqDisplay').innerText = val.toFixed(2);
+        
+        const myRoomRef = db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}`);
+        myRoomRef.set({ name: personnelDB[currentUser].name, rank: personnelDB[currentUser].rank, isTalking: false, time: Date.now() });
+        myRoomRef.onDisconnect().remove();
+
         listenToRadioFreq();
+        listenToRadioUsers();
     }
 
-    function changeFreq(delta) {
-        radioFreq = (radioFreq + delta);
-        document.getElementById('radioFreqInput').value = radioFreq.toFixed(2);
-        listenToRadioFreq();
+    function leaveRadioRoom() {
+        if(radioRoomRef) db.ref(radioRoomRef).off();
+        if(radioListener) db.ref(radioListener).off();
+        db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}`).remove();
+        
+        document.getElementById('radioJoinScreen').style.display = 'block';
+        document.getElementById('radioActiveScreen').style.display = 'none';
+    }
+
+    function listenToRadioUsers() {
+        radioRoomRef = `radio_rooms/${radioFreqStr}/users`;
+        db.ref(radioRoomRef).on('value', snap => {
+            const users = snap.val() || {};
+            const list = document.getElementById('radioUsersList'); if(!list) return;
+            list.innerHTML = ""; let count = 0;
+            for(let id in users) {
+                count++; const u = users[id]; const isMe = id === currentUser;
+                const talkingIcon = u.isTalking ? `<i class="fas fa-microphone" style="color:var(--danger); animation: pulse 1s infinite;"></i>` : '';
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border-right:3px solid ${u.isTalking ? 'var(--danger)' : 'var(--success)'};">
+                    <div style="font-size:13px; color:white; font-weight:bold;">${u.rank} / ${u.name} ${isMe ? '(أنت)' : ''}</div>
+                    ${talkingIcon}
+                </div>`;
+            }
+            document.getElementById('radioUsersCount').innerText = count;
+        });
     }
 
     function listenToRadioFreq() {
-        const freqStr = radioFreq.toFixed(2).replace('.', '_');
         if(radioListener) db.ref(radioListener).off();
-        radioListener = `radio_msgs/${freqStr}`;
+        radioListener = `radio_msgs/${radioFreqStr}`;
         const loginTime = Date.now();
         db.ref(radioListener).on('child_added', snap => {
             const msg = snap.val();
@@ -633,8 +677,10 @@
             document.getElementById('pttBtn').classList.add('ptt-recording');
             document.getElementById('radioBeepSound').play().catch(e=>{});
             navigator.vibrate && navigator.vibrate(50);
+            
+            db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}/isTalking`).set(true);
         } catch(err) { 
-            showToast("يعمل الراديو بالوضع الصامت بسبب قيود أمان المتصفح (تتطلب استضافة)", "error"); 
+            showToast("المايك غير متاح! يجب استخدام ملف التشغيل Run_OFC.bat لتجاوز أمان المتصفح.", "error"); 
             console.error(err);
         }
     }
@@ -646,13 +692,14 @@
         document.getElementById('pttBtn').classList.remove('ptt-recording');
         radioRecorder.stream.getTracks().forEach(t => t.stop());
         
+        db.ref(`radio_rooms/${radioFreqStr}/users/${currentUser}/isTalking`).set(false);
+        
         radioRecorder.onstop = () => {
             const blob = new Blob(radioChunks);
             const reader = new FileReader(); reader.readAsDataURL(blob);
             reader.onloadend = () => {
                 if(!reader.result) return;
-                const freqStr = radioFreq.toFixed(2).replace('.', '_');
-                db.ref(`radio_msgs/${freqStr}`).push({ senderId: currentUser, time: Date.now(), audioData: reader.result });
+                db.ref(`radio_msgs/${radioFreqStr}`).push({ senderId: currentUser, time: Date.now(), audioData: reader.result });
             };
         };
     }
