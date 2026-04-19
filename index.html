@@ -979,6 +979,57 @@
     function createNewGroup() { const name = document.getElementById('newGroupName').value.trim(); if(name) db.ref('official_groups/' + name).set(true).then(() => { showToast("تم إنشاء المجموعة", "success"); document.getElementById('newGroupName').value = ""; }); }
     function manageGroup(action) { const id = document.getElementById('targetMilId').value.trim(); const group = document.getElementById('targetGroup').value; if(id && personnelDB[id]) { const ref = db.ref(`users_groups/${id}/${group}`); if(action === 'add') { ref.set(true); showToast(`تم الإضافة`, "success"); } else { ref.remove(); showToast(`تم الإزالة`, "success"); } document.getElementById('targetMilId').value = ""; } }
 
+    function listenForRaidAlerts() {
+        db.ref('active_alert').on('value', snap => {
+            const data = snap.val();
+            if(data && data.active && data.senderId !== currentUser) {
+                document.getElementById('raidSenderText').innerText = `تم إطلاق النداء بواسطة: ${data.senderName}`;
+                document.getElementById('raidAlertModal').style.display = 'flex';
+                document.getElementById('sirenSound').play().catch(e=>{});
+            } else {
+                document.getElementById('raidAlertModal').style.display = 'none';
+                document.getElementById('sirenSound').pause();
+            }
+        });
+    }
+
+    function listenForMyRequests() {
+        db.ref('requests').orderByChild('userId').equalTo(currentUser).on('value', snap => {
+            const list = document.getElementById('myReqList'); if(!list) return; list.innerHTML = "";
+            let count = 0;
+            snap.forEach(child => {
+                count++; const r = child.val();
+                let bClass = 'badge-pending'; let bText = 'قيد المراجعة'; let rClass = 'req-pending';
+                if(r.status === 'accepted') { bClass = 'badge-accepted'; bText = 'مقبول'; rClass = 'req-accepted'; }
+                else if(r.status === 'rejected') { bClass = 'badge-rejected'; bText = 'مرفوض'; rClass = 'req-rejected'; }
+                let reasonHtml = r.reason ? `<div class="req-reason-text">سبب الرفض: ${r.reason}</div>` : '';
+                list.innerHTML += `<div class="glass-panel req-card ${rClass}"><div class="req-header"><span style="font-weight:bold; font-size:14px;">${r.type}</span><span class="req-badge ${bClass}">${bText}</span></div><div class="req-time">${formatDateWhatsApp(r.time)}</div>${reasonHtml}</div>`;
+            });
+            if(count === 0) list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">لا توجد طلبات سابقة</div>`;
+        });
+    }
+
+    let pendingReqFile = null;
+    function updateFileName(input, textId) {
+        if(input.files.length > 0) {
+            pendingReqFile = input.files[0];
+            document.getElementById(textId).innerText = pendingReqFile.name;
+            document.getElementById(textId).style.color = 'var(--primary)';
+        }
+    }
+
+    async function submitRequest() {
+        const type = document.getElementById('reqType').value; const details = document.getElementById('reqDetails').value.trim();
+        if(!details) return showToast("الرجاء كتابة التفاصيل", "error");
+        document.getElementById('submitReqBtn').innerHTML = '<span class="loader"></span>';
+        try {
+            let b64 = null; if(pendingReqFile) b64 = await compressImageAndGetBase64(pendingReqFile);
+            await db.ref('requests').push({ userId: currentUser, name: personnelDB[currentUser].name, rank: personnelDB[currentUser].rank, type: type, details: details, file: b64, status: 'pending', time: Date.now() });
+            showToast("تم إرسال الطلب للقيادة", "success"); document.getElementById('reqDetails').value = ""; document.getElementById('reqFile').value = ""; document.getElementById('reqFileNameText').innerText = "إرفاق مستند"; document.getElementById('reqFileNameText').style.color = ""; pendingReqFile = null;
+        } catch(e) { showToast("خطأ في الإرسال", "error"); }
+        document.getElementById('submitReqBtn').innerHTML = 'إرسال الطلب';
+    }
+
 </script>
 </body>
 </html>
