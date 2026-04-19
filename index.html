@@ -610,6 +610,15 @@
         if(isNaN(val)) val = 145.50;
         radioFreqStr = val.toFixed(2).replace('.', '_');
         
+        // --- Unlock Audio for Mobile Devices (iOS/Android) ---
+        try {
+            const beep = document.getElementById('radioBeepSound');
+            beep.volume = 0; beep.play().then(()=>{ beep.pause(); beep.currentTime=0; beep.volume=1; }).catch(e=>{});
+            let player = document.getElementById('radioPlayer');
+            if(!player) { player = document.createElement('audio'); player.id = 'radioPlayer'; document.body.appendChild(player); }
+            player.volume = 0; player.play().then(()=>{ player.pause(); player.currentTime=0; player.volume=1; }).catch(e=>{});
+        } catch(err) {}
+        
         document.getElementById('radioJoinScreen').style.display = 'none';
         document.getElementById('radioActiveScreen').style.display = 'block';
         document.getElementById('activeFreqDisplay').innerText = val.toFixed(2);
@@ -657,10 +666,14 @@
             const msg = snap.val();
             if(msg.time > loginTime && msg.senderId !== currentUser) {
                 const beep = document.getElementById('radioBeepSound');
-                beep.play().then(() => {
-                    const audio = new Audio(msg.audioData);
-                    setTimeout(() => audio.play(), 300);
-                }).catch(e => console.log("Audio blocked", e));
+                const player = document.getElementById('radioPlayer');
+                if(beep) beep.play().catch(e=>{});
+                setTimeout(() => {
+                    if(player) {
+                        player.src = msg.audioData;
+                        player.play().catch(e => console.log("Audio blocked by Safari", e));
+                    }
+                }, 300);
             }
         });
     }
